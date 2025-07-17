@@ -1,40 +1,124 @@
-It looks like you’re sharing a code snippet for an Angular form with a custom multi-select component, and then you’ve listed some CXT Product Codes. Based on this context, I assume you want help integrating or displaying these product codes in the form — maybe in a similar multi-select or dropdown fashion.
+<changeSet id="create-dpw-cxt-prod-code-table" author="harish.semwal">
+    <createTable tableName="DPW_CxT_Prod_Code">
+        <column name="id" type="INT" autoIncrement="true">
+            <constraints primaryKey="true" nullable="false" />
+        </column>
+        <column name="productCode" type="VARCHAR(5)">
+            <constraints nullable="false" />
+        </column>
+    </createTable>
 
-If You Want to Add CXT Prod Code as Another Select Field
-
-Here’s how you can structure the code to include a similar dropdown for CXT Prod Code:
-
-<div class="input-row">
-  <p>CXT Prod Code</p>
-
-  <ng-dpw-multi-select
-    [options]="cxtProdCodeOptions"
-    [resetFilterOnHide]="true"
-    [style]="{ width: '100%' }"
-    formControlName="cxtProdCode"
-    (change)="onChange($event.value, 'cxtProdCode')"
-  ></ng-dpw-multi-select>
-</div>
-
-In Your Component (.ts) File
-
-Define the options like this:
-
-cxtProdCodeOptions = [
-  { label: 'EC (Export Collection)', value: 'EC' },
-  { label: 'IC (Import Collection)', value: 'IC' },
-  { label: 'EL (Export LC)', value: 'EL' },
-  { label: 'LC (Import LC)', value: 'LC' }
-];
-
-Additional Tips
-
-If sectorOptions is coming from an async pipe (observable), you can also make cxtProdCodeOptions observable if needed.
-
-Adjust the formControlName and event logic depending on your form group setup.
-
-Ensure you have a corresponding form control initialized in your FormGroup.
+    <addCheckConstraint
+        tableName="DPW_CxT_Prod_Code"
+        constraintName="chk_product_code_valid"
+        checkCondition="productCode IN ('EC', 'EL', 'LC', 'IC')" />
+</changeSet>
 
 
-Let me know if you want a dropdown instead of a multi-select or need it conditionally based on selected sector.
+package com.yourpackage.model;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Entity
+@Table(name = "DPW_CxT_Prod_Code")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DpwCxtProdCode {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "productCode", nullable = false, length = 5)
+    private String productCode;
+}
+
+responses:
+  '200':
+    description: Success
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/DpwCxtProdCode'
+
+
+
+paths:
+  /cxt-prod-code:
+    get:
+      tags:
+        - StaticData
+      summary: Track and trace mapping between Status in Conserto and sub_tnx_type_code
+      description: Returns list of supported product codes
+      operationId: getCxtProdCode
+      parameters:
+        - in: header
+          name: bnppuid
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: id
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: productCode
+          required: false
+          schema:
+            type: string
+            enum: [EC, EL, LC, IC]
+      responses:
+        '200':
+          $ref: './response.yaml#/DpwCxtProdCodeListResponse'
+        '400':
+          $ref: '../common-specs/common-errors.yaml#/BadRequestError'
+        '401':
+          $ref: '../common-specs/common-errors.yaml#/UnauthorizedError'
+        '403':
+          $ref: '../common-specs/common-errors.yaml#/ForbiddenError'
+        '404':
+          $ref: '../common-specs/common-errors.yaml#/NotFoundError'
+        '429':
+          $ref: '../common-specs/common-errors.yaml#/TooManyRequestsError'
+        '500':
+          $ref: '../common-specs/common-errors.yaml#/InternalServerError'
+        '502':
+          $ref: '../common-specs/common-errors.yaml#/BadGatewayError'
+        '503':
+          $ref: '../common-specs/common-errors.yaml#/ServiceUnavailableError'
+
+DpwCxtProdCode:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 1
+    productCode:
+      type: string
+      enum: [EC, EL, LC, IC]
+      example: EC
+
+
+
+DpwCxtProdCodeResponse:
+  description: Single product code response
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/DpwCxtProdCode'
+
+DpwCxtProdCodeListResponse:
+  description: List of product codes
+  content:
+    application/json:
+      schema:
+        type: array
+        items:
+          $ref: './schemas.yaml#/DpwCxtProdCode'
