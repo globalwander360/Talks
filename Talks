@@ -1,1 +1,40 @@
-Talks 
+It looks like you’re sharing a code snippet for an Angular form with a custom multi-select component, and then you’ve listed some CXT Product Codes. Based on this context, I assume you want help integrating or displaying these product codes in the form — maybe in a similar multi-select or dropdown fashion.
+
+If You Want to Add CXT Prod Code as Another Select Field
+
+Here’s how you can structure the code to include a similar dropdown for CXT Prod Code:
+
+<div class="input-row">
+  <p>CXT Prod Code</p>
+
+  <ng-dpw-multi-select
+    [options]="cxtProdCodeOptions"
+    [resetFilterOnHide]="true"
+    [style]="{ width: '100%' }"
+    formControlName="cxtProdCode"
+    (change)="onChange($event.value, 'cxtProdCode')"
+  ></ng-dpw-multi-select>
+</div>
+
+In Your Component (.ts) File
+
+Define the options like this:
+
+cxtProdCodeOptions = [
+  { label: 'EC (Export Collection)', value: 'EC' },
+  { label: 'IC (Import Collection)', value: 'IC' },
+  { label: 'EL (Export LC)', value: 'EL' },
+  { label: 'LC (Import LC)', value: 'LC' }
+];
+
+Additional Tips
+
+If sectorOptions is coming from an async pipe (observable), you can also make cxtProdCodeOptions observable if needed.
+
+Adjust the formControlName and event logic depending on your form group setup.
+
+Ensure you have a corresponding form control initialized in your FormGroup.
+
+
+Let me know if you want a dropdown instead of a multi-select or need it conditionally based on selected sector.
+
