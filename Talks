@@ -122,3 +122,45 @@ DpwCxtProdCodeListResponse:
         type: array
         items:
           $ref: './schemas.yaml#/DpwCxtProdCode'
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+  <changeSet id="dpw-cxt-prod-code-init" author="harish.semwal">
+  
+    <!-- Create Table -->
+    <createTable tableName="DPW_CxT_Prod_Code">
+      <column name="id" type="INT" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="productCode" type="VARCHAR(5)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <!-- Insert Fixed Values -->
+    <insert tableName="DPW_CxT_Prod_Code">
+      <column name="productCode" value="EC"/>
+    </insert>
+    <insert tableName="DPW_CxT_Prod_Code">
+      <column name="productCode" value="EL"/>
+    </insert>
+    <insert tableName="DPW_CxT_Prod_Code">
+      <column name="productCode" value="LC"/>
+    </insert>
+    <insert tableName="DPW_CxT_Prod_Code">
+      <column name="productCode" value="IC"/>
+    </insert>
+    <insert tableName="DPW_CxT_Prod_Code">
+      <column name="productCode" value="IG"/>
+    </insert>
+
+  </changeSet>
+
+</databaseChangeLog>
