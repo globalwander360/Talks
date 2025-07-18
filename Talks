@@ -1,114 +1,15 @@
-Bilkul bhai 💯
-Yeh raha complete working updated code ― CXT Prod Code dropdown ke liye, exactly customer category ke jaisa.
-
-
----
-
-✅ Step 1: HTML (Dropdown Field)
-
-<div class="input-row">
-  <p>CXT Prod Code</p>
-  <ng-dpw-multi-select
-    [options]="(cxtProdCodeOptions$ | async)"
-    [resetFilterOnHide]="true"
-    [style]="{ width: '100%' }"
-    formControlName="cxtProdCode"
-    (change)="onChange($event.value, 'cxtProdCode')"
-  ></ng-dpw-multi-select>
-</div>
-
-
----
-
-✅ Step 2: Component.ts (Observable for Dropdown)
-
 cxtProdCodeOptions$: Observable<SelectItem[]> = this.store
   .select(getProcessingEntityId)
   .pipe(
     switchMap((processingEntityId) =>
       this.dataService.getCxtProdCode(processingEntityId).pipe(
-        map((codes: CxtProdCode[]) =>
-          entitiesToCRUDOptions(
-            codes,
-            'productCode', // key to show in dropdown (change if it's 'code')
-            null,
-            { productCode: 'None' }, // default option
-            'productCode',
-            true
-          )
-        )
+        map((codes: ExtProdCode[]) => {
+          const allCodes = [{ productCode: 'None' }, ...codes]; // 👈 Add 'None' option manually
+          return allCodes.map((item) => ({
+            label: item.productCode,
+            value: item.productCode,
+          }));
+        })
       )
     )
   );
-
-
----
-
-✅ Step 3: dataService.ts (Calling API via apistaticdata)
-
-getCxtProdCode(processingEntity: string): Observable<CxtProdCode[]> {
-  const bnppuid = this.userService.getBnppUid(); // or hardcode if needed
-  return this.storeService.checkInStore<CxtProdCode[]>(
-    StaticDataType.CXT_PROD_CODE,
-    this.apistaticdata.getCxtProdCode(bnppuid, undefined, undefined, 'body', false),
-    processingEntity
-  );
-}
-
-
----
-
-✅ Step 4: Model (Optional but Recommended)
-
-export interface CxtProdCode {
-  productCode: string; // or 'code' if that's your backend field
-  // other optional fields
-}
-
-
----
-
-✅ Step 5: StaticDataType Enum (if not already added)
-
-export enum StaticDataType {
-  CXT_PROD_CODE = 'CXT_PROD_CODE',
-  CUSTOMER_CATEGORY = 'CUSTOMER_CATEGORY',
-  // any other static types...
-}
-
-
----
-
-🔄 Sample API Response Expected:
-
-[
-  { "productCode": "EC" },
-  { "productCode": "EL" },
-  { "productCode": "IC" },
-  { "productCode": "IG" }
-]
-
-
----
-
-✅ Output on Screen:
-
-Dropdown will show:
-
-| v | EC |
-| v | EL |
-| v | IC |
-| v | IG |
-
-
----
-
-🤝 Final Note:
-
-Agar backend key code hai instead of productCode, toh productCode ko code se replace kar dena.
-
-this.userService.getBnppUid() ko apne project ke logic ke according update karna.
-
-
-Bhai ab sab ready hai. Kuch aur tuning chahiye toh bata dena 🔧
-
