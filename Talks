@@ -1,166 +1,95 @@
-<changeSet id="create-dpw-cxt-prod-code-table" author="harish.semwal">
-    <createTable tableName="DPW_CxT_Prod_Code">
-        <column name="id" type="INT" autoIncrement="true">
-            <constraints primaryKey="true" nullable="false" />
-        </column>
-        <column name="productCode" type="VARCHAR(5)">
-            <constraints nullable="false" />
-        </column>
-    </createTable>
-
-    <addCheckConstraint
-        tableName="DPW_CxT_Prod_Code"
-        constraintName="chk_product_code_valid"
-        checkCondition="productCode IN ('EC', 'EL', 'LC', 'IC')" />
-</changeSet>
+To replicate the CXT Prod Code input exactly like the Customer Category implementation, where options come from an Observable and are retrieved using a storeService + apistaticdata method, follow the below approach.
 
 
-package com.yourpackage.model;
+---
 
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+✅ 1. HTML Template (.html)
 
-@Entity
-@Table(name = "DPW_CxT_Prod_Code")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class DpwCxtProdCode {
+<div class="input-row">
+  <p>CXT Prod Code</p>
+  <ng-dpw-multi-select
+    [options]="(cxtProdCodeOptions$ | async)"
+    [resetFilterOnHide]="true"
+    [style]="{ width: '100%' }"
+    formControlName="cxtProdCode"
+    (change)="onChange($event.value, 'cxtProdCode')"
+  ></ng-dpw-multi-select>
+</div>
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
 
-    @Column(name = "productCode", nullable = false, length = 5)
-    private String productCode;
+---
+
+✅ 2. Component File (.ts)
+
+cxtProdCodeOptions$: Observable<SelectItem[]> = this.store
+  .select(getProcessingEntityId)
+  .pipe(
+    switchMap((selectedProcessingEntityId) =>
+      this.dataservice.getCxtProdCode(selectedProcessingEntityId).pipe(
+        map((prodCodes: CxtProdCode[]) =>
+          entitiesToCRUDOptions(
+            prodCodes,
+            'code', // property from CxtProdCode object
+            null,
+            { code: 'None' },
+            'code',
+            true
+          )
+        )
+      )
+    )
+  );
+
+
+---
+
+✅ 3. Data Service Method
+
+getCxtProdCode(processingEntity: string): Observable<CxtProdCode[]> {
+  return this.storeService.checkInStore<CxtProdCode[]>(
+    StaticDataType.CXT_PROD_CODE,
+    this.apistaticdata.getCxtProdCode(processingEntity, 'BNPPUID'),
+    processingEntity
+  );
 }
 
-responses:
-  '200':
-    description: Success
-    content:
-      application/json:
-        schema:
-          type: array
-          items:
-            $ref: '#/components/schemas/DpwCxtProdCode'
+
+---
+
+✅ 4. API Service Stub
+
+Ensure apistaticdata.getCxtProdCode exists:
+
+getCxtProdCode(processingEntity: string, userId: string): Observable<CxtProdCode[]> {
+  // Replace with actual HTTP call logic
+  return this.http.get<CxtProdCode[]>(`/api/cxt-prod-code?entity=${processingEntity}&user=${userId}`);
+}
+
+
+---
+
+✅ 5. Static Data Type Enum
+
+If not present, add this:
+
+export enum StaticDataType {
+  CUSTOMER_CATEGORY = 'CUSTOMER_CATEGORY',
+  CXT_PROD_CODE = 'CXT_PROD_CODE',
+  // Add others if needed
+}
+
+
+---
+
+💡 Notes
+
+Replace 'code' with the actual field name if your CxtProdCode model uses a different property like prodCode or type.
+
+entitiesToCRUDOptions is assumed to transform the data into SelectItem[].
 
 
 
-paths:
-  /cxt-prod-code:
-    get:
-      tags:
-        - StaticData
-      summary: Track and trace mapping between Status in Conserto and sub_tnx_type_code
-      description: Returns list of supported product codes
-      operationId: getCxtProdCode
-      parameters:
-        - in: header
-          name: bnppuid
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: id
-          required: false
-          schema:
-            type: integer
-        - in: query
-          name: productCode
-          required: false
-          schema:
-            type: string
-            enum: [EC, EL, LC, IC]
-      responses:
-        '200':
-          $ref: './response.yaml#/DpwCxtProdCodeListResponse'
-        '400':
-          $ref: '../common-specs/common-errors.yaml#/BadRequestError'
-        '401':
-          $ref: '../common-specs/common-errors.yaml#/UnauthorizedError'
-        '403':
-          $ref: '../common-specs/common-errors.yaml#/ForbiddenError'
-        '404':
-          $ref: '../common-specs/common-errors.yaml#/NotFoundError'
-        '429':
-          $ref: '../common-specs/common-errors.yaml#/TooManyRequestsError'
-        '500':
-          $ref: '../common-specs/common-errors.yaml#/InternalServerError'
-        '502':
-          $ref: '../common-specs/common-errors.yaml#/BadGatewayError'
-        '503':
-          $ref: '../common-specs/common-errors.yaml#/ServiceUnavailableError'
+---
 
-DpwCxtProdCode:
-  type: object
-  properties:
-    id:
-      type: integer
-      example: 1
-    productCode:
-      type: string
-      enum: [EC, EL, LC, IC]
-      example: EC
+Let me know if you want me to generate interface/model CxtProdCode or the backend call too.
 
-
-
-DpwCxtProdCodeResponse:
-  description: Single product code response
-  content:
-    application/json:
-      schema:
-        $ref: './schemas.yaml#/DpwCxtProdCode'
-
-DpwCxtProdCodeListResponse:
-  description: List of product codes
-  content:
-    application/json:
-      schema:
-        type: array
-        items:
-          $ref: './schemas.yaml#/DpwCxtProdCode'
-
-
-<?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="
-    http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
-
-  <changeSet id="dpw-cxt-prod-code-init" author="harish.semwal">
-  
-    <!-- Create Table -->
-    <createTable tableName="DPW_CxT_Prod_Code">
-      <column name="id" type="INT" autoIncrement="true">
-        <constraints primaryKey="true" nullable="false"/>
-      </column>
-      <column name="productCode" type="VARCHAR(5)">
-        <constraints nullable="false"/>
-      </column>
-    </createTable>
-
-    <!-- Insert Fixed Values -->
-    <insert tableName="DPW_CxT_Prod_Code">
-      <column name="productCode" value="EC"/>
-    </insert>
-    <insert tableName="DPW_CxT_Prod_Code">
-      <column name="productCode" value="EL"/>
-    </insert>
-    <insert tableName="DPW_CxT_Prod_Code">
-      <column name="productCode" value="LC"/>
-    </insert>
-    <insert tableName="DPW_CxT_Prod_Code">
-      <column name="productCode" value="IC"/>
-    </insert>
-    <insert tableName="DPW_CxT_Prod_Code">
-      <column name="productCode" value="IG"/>
-    </insert>
-
-  </changeSet>
-
-</databaseChangeLog>
