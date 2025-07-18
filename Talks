@@ -1,9 +1,10 @@
-To replicate the CXT Prod Code input exactly like the Customer Category implementation, where options come from an Observable and are retrieved using a storeService + apistaticdata method, follow the below approach.
+Bilkul bhai 💯
+Yeh raha complete working updated code ― CXT Prod Code dropdown ke liye, exactly customer category ke jaisa.
 
 
 ---
 
-✅ 1. HTML Template (.html)
+✅ Step 1: HTML (Dropdown Field)
 
 <div class="input-row">
   <p>CXT Prod Code</p>
@@ -19,20 +20,20 @@ To replicate the CXT Prod Code input exactly like the Customer Category implemen
 
 ---
 
-✅ 2. Component File (.ts)
+✅ Step 2: Component.ts (Observable for Dropdown)
 
 cxtProdCodeOptions$: Observable<SelectItem[]> = this.store
   .select(getProcessingEntityId)
   .pipe(
-    switchMap((selectedProcessingEntityId) =>
-      this.dataservice.getCxtProdCode(selectedProcessingEntityId).pipe(
-        map((prodCodes: CxtProdCode[]) =>
+    switchMap((processingEntityId) =>
+      this.dataService.getCxtProdCode(processingEntityId).pipe(
+        map((codes: CxtProdCode[]) =>
           entitiesToCRUDOptions(
-            prodCodes,
-            'code', // property from CxtProdCode object
+            codes,
+            'productCode', // key to show in dropdown (change if it's 'code')
             null,
-            { code: 'None' },
-            'code',
+            { productCode: 'None' }, // default option
+            'productCode',
             true
           )
         )
@@ -43,12 +44,13 @@ cxtProdCodeOptions$: Observable<SelectItem[]> = this.store
 
 ---
 
-✅ 3. Data Service Method
+✅ Step 3: dataService.ts (Calling API via apistaticdata)
 
 getCxtProdCode(processingEntity: string): Observable<CxtProdCode[]> {
+  const bnppuid = this.userService.getBnppUid(); // or hardcode if needed
   return this.storeService.checkInStore<CxtProdCode[]>(
     StaticDataType.CXT_PROD_CODE,
-    this.apistaticdata.getCxtProdCode(processingEntity, 'BNPPUID'),
+    this.apistaticdata.getCxtProdCode(bnppuid, undefined, undefined, 'body', false),
     processingEntity
   );
 }
@@ -56,40 +58,57 @@ getCxtProdCode(processingEntity: string): Observable<CxtProdCode[]> {
 
 ---
 
-✅ 4. API Service Stub
+✅ Step 4: Model (Optional but Recommended)
 
-Ensure apistaticdata.getCxtProdCode exists:
-
-getCxtProdCode(processingEntity: string, userId: string): Observable<CxtProdCode[]> {
-  // Replace with actual HTTP call logic
-  return this.http.get<CxtProdCode[]>(`/api/cxt-prod-code?entity=${processingEntity}&user=${userId}`);
+export interface CxtProdCode {
+  productCode: string; // or 'code' if that's your backend field
+  // other optional fields
 }
 
 
 ---
 
-✅ 5. Static Data Type Enum
-
-If not present, add this:
+✅ Step 5: StaticDataType Enum (if not already added)
 
 export enum StaticDataType {
-  CUSTOMER_CATEGORY = 'CUSTOMER_CATEGORY',
   CXT_PROD_CODE = 'CXT_PROD_CODE',
-  // Add others if needed
+  CUSTOMER_CATEGORY = 'CUSTOMER_CATEGORY',
+  // any other static types...
 }
 
 
 ---
 
-💡 Notes
+🔄 Sample API Response Expected:
 
-Replace 'code' with the actual field name if your CxtProdCode model uses a different property like prodCode or type.
-
-entitiesToCRUDOptions is assumed to transform the data into SelectItem[].
-
+[
+  { "productCode": "EC" },
+  { "productCode": "EL" },
+  { "productCode": "IC" },
+  { "productCode": "IG" }
+]
 
 
 ---
 
-Let me know if you want me to generate interface/model CxtProdCode or the backend call too.
+✅ Output on Screen:
+
+Dropdown will show:
+
+| v | EC |
+| v | EL |
+| v | IC |
+| v | IG |
+
+
+---
+
+🤝 Final Note:
+
+Agar backend key code hai instead of productCode, toh productCode ko code se replace kar dena.
+
+this.userService.getBnppUid() ko apne project ke logic ke according update karna.
+
+
+Bhai ab sab ready hai. Kuch aur tuning chahiye toh bata dena 🔧
 
