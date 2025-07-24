@@ -1,182 +1,54 @@
-Bilkul bhai! 💯 Tere requirement full clear hai:
+checkForCustomerCurrency$(form: FormGroup): Observable<boolean> {
+  const customerAccount = form.get('customer.accountNumber')?.value;
+  const currency = form.get('event.currency')?.value?.initialCurrency;
 
-> ✅ Tu CxtProdCodeEntity se data fetch karega (DB se),
-✅ Aur return karega CxtProdCode (DTO) object as response.
-✅ Tu chah raha hai: Service interface + ServiceImpl structure.
+  const accountNum = customerAccount?.accountNum || '';
+  const customerCurrency = accountNum.slice(-3); // Assuming last 3 letters denote currency
+  const defaultAccountNum = this.defaultCustomerAccountOption?.accountNum || '';
 
+  // Case: No customer account selected
+  if (!accountNum || accountNum === 'No account selected') {
+    return new Observable<boolean>((observer) => {
+      this.confirmationService.confirm({
+        key: 'currency-mismatch-warning',
+        message: 'The Customer Account has not been selected. Continue?',
+        header: 'Confirmation',
+        accept: () => {
+          observer.next(true);
+          observer.complete();
+        },
+        reject: () => {
+          observer.next(false);
+          observer.complete();
+        }
+      });
+    });
+  }
 
+  // Case: account is default or currencies mismatch
+  if (accountNum !== defaultAccountNum && customerCurrency !== currency) {
+    return new Observable<boolean>((observer) => {
+      if (this.requestFora.get('event.currency')?.disabled) {
+        this.confirmationService.confirm({
+          key: 'currency-mismatch-warning',
+          message: 'The currency of the Customer Account selected is not the same as the Currency of the Event. Continue?',
+          header: 'Confirmation',
+          accept: () => {
+            observer.next(true);
+            observer.complete();
+          },
+          reject: () => {
+            observer.next(false);
+            observer.complete();
+          }
+        });
+      } else {
+        observer.next(true);
+        observer.complete();
+      }
+    });
+  }
 
-
----
-
-🔧 Final Structure (Updated)
-
-src/
-├── controller/
-│   └── CxtProdCodeController.java
-├── dto/
-│   └── CxtProdCode.java        ✅ (DTO layer)
-├── entity/
-│   └── CxtProdCodeEntity.java ✅ (Entity from DB)
-├── repository/
-│   └── CxtProdCodeRepository.java
-├── service/
-│   ├── CxtProdCodeService.java      ✅ Interface
-│   └── CxtProdCodeServiceImpl.java ✅ Implementation
-
-
----
-
-✅ 1. CxtProdCodeEntity.java (Entity)
-
-package com.example.demo.entity;
-
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "cxt_prod_code")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CxtProdCodeEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "product_code")
-    private String productCode;
+  // Case: currency matches
+  return of(true);
 }
-
-
----
-
-✅ 2. CxtProdCode.java (DTO)
-
-package com.example.demo.dto;
-
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class CxtProdCode {
-    private Long id;
-    private String productCode;
-}
-
-
----
-
-✅ 3. CxtProdCodeRepository.java
-
-package com.example.demo.repository;
-
-import com.example.demo.entity.CxtProdCodeEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface CxtProdCodeRepository extends JpaRepository<CxtProdCodeEntity, Long> {
-}
-
-
----
-
-✅ 4. CxtProdCodeService.java (Interface)
-
-package com.example.demo.service;
-
-import com.example.demo.dto.CxtProdCode;
-import java.util.List;
-
-public interface CxtProdCodeService {
-    List<CxtProdCode> getAllCodes();
-}
-
-
----
-
-✅ 5. CxtProdCodeServiceImpl.java (Implementation)
-
-package com.example.demo.service;
-
-import com.example.demo.dto.CxtProdCode;
-import com.example.demo.entity.CxtProdCodeEntity;
-import com.example.demo.repository.CxtProdCodeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Service
-public class CxtProdCodeServiceImpl implements CxtProdCodeService {
-
-    @Autowired
-    private CxtProdCodeRepository repository;
-
-    @Override
-    public List<CxtProdCode> getAllCodes() {
-        List<CxtProdCodeEntity> entities = repository.findAll();
-        return entities.stream()
-                .map(e -> new CxtProdCode(e.getId(), e.getProductCode()))
-                .collect(Collectors.toList());
-    }
-}
-
-
----
-
-✅ 6. CxtProdCodeController.java
-
-package com.example.demo.controller;
-
-import com.example.demo.dto.CxtProdCode;
-import com.example.demo.service.CxtProdCodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/cxt-prod-code")
-public class CxtProdCodeController {
-
-    @Autowired
-    private CxtProdCodeService service;
-
-    @GetMapping
-    public ResponseEntity<List<CxtProdCode>> getCxtProdCode(
-            @RequestParam String s,
-            @RequestParam(required = false) Integer integer,
-            @RequestParam(required = false) String s1) {
-
-        List<CxtProdCode> codes = service.getAllCodes(); // use karega DTO
-        return ResponseEntity.ok(codes);
-    }
-}
-
-
----
-
-✅ Sample Output (API Response)
-
-[
-  { "id": 1, "productCode": "EC" },
-  { "id": 2, "productCode": "EL" },
-  { "id": 3, "productCode": "IC" },
-  { "id": 4, "productCode": "IG" }
-]
-
-
----
-
-Bhai isse tu entity aur DTO ka separation maintain karega, jo best practice hai — especially jab large-scale system me migrate kare.
-
-Agar tu mapping ko aur clean banana chahta hai using ModelMapper ya MapStruct toh wo bhi kar sakte hain.
-
-Agle step ke liye bol de — Swagger? Test case? Frontend bind?
-Main yahin hoon bhai! 🚀
