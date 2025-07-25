@@ -1,18 +1,20 @@
 checkForCustomerCurrency$(form: FormGroup): Observable<boolean> {
-  const customerAccount = form.get('customer.accountNumber')?.value;
-  const currency = form.get('event.currency')?.value?.initialCurrency;
+  const customerAccount: string = form.get('customer.accountNumber')?.value?.accountNum;
+  const customerCurrency: string = customerAccount?.slice(-3);
+  const currency: string = form.get('event.currency')?.value?.initialCurrency;
 
-  const accountNum = customerAccount?.accountNum || '';
-  const customerCurrency = accountNum.slice(-3); // Assuming last 3 letters denote currency
-  const defaultAccountNum = this.defaultCustomerAccountOption?.accountNum || '';
-
-  // Case: No customer account selected
-  if (!accountNum || accountNum === 'No account selected') {
+  if (
+    !customerAccount ||
+    customerAccount === defaultCustomerAccountOption.accountNum ||
+    customerCurrency !== currency
+  ) {
     return new Observable<boolean>((observer) => {
       this.confirmationService.confirm({
         key: 'currency-mismatch-warning',
-        message: 'The Customer Account has not been selected. Continue?',
-        header: 'Confirmation',
+        message: !customerAccount || customerAccount === defaultCustomerAccountOption.accountNum
+          ? "The Customer Account has not been selected. Continue?"
+          : "The currency of the Customer Account selected is not same than the Currency of the Event. Continue?",
+        header: "Confirmation",
         accept: () => {
           observer.next(true);
           observer.complete();
@@ -25,30 +27,5 @@ checkForCustomerCurrency$(form: FormGroup): Observable<boolean> {
     });
   }
 
-  // Case: account is default or currencies mismatch
-  if (accountNum !== defaultAccountNum && customerCurrency !== currency) {
-    return new Observable<boolean>((observer) => {
-      if (this.requestFora.get('event.currency')?.disabled) {
-        this.confirmationService.confirm({
-          key: 'currency-mismatch-warning',
-          message: 'The currency of the Customer Account selected is not the same as the Currency of the Event. Continue?',
-          header: 'Confirmation',
-          accept: () => {
-            observer.next(true);
-            observer.complete();
-          },
-          reject: () => {
-            observer.next(false);
-            observer.complete();
-          }
-        });
-      } else {
-        observer.next(true);
-        observer.complete();
-      }
-    });
-  }
-
-  // Case: currency matches
   return of(true);
 }
