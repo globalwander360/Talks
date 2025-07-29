@@ -1,97 +1,73 @@
-Thanks for sharing the code. You already have a method defined for cxtProdCodeOptions$, but it’s not currently integrated with the combineLatest() logic in your setInputOptions() method, where all dropdown data is being fetched.
 
-✅ Goal:
+📁 initiate-event-data.service.ts
 
-You want to merge/integrate the cxtProdCodeOptions$ observable logic into your setInputOptions() method so that it loads along with other dropdowns and the output is used accordingly.
+getCxtProdCode(processingEntityId: string, wfr: string): Observable<CxtProdCode[]> {
+  return this.staticDataService
+    .getCxtProdCode('BNPPUID', undefined, undefined, 'body', false)
+    .pipe(
+      switchMap((response: CxtProdCode[]) => {
+        // ✅ Future-proofing: agar aur mapping/filtering karni ho toh yahan kare
+        return this.getCachedCxtProdCode().pipe(
+          map((allCodes: CxtProdCode[]) => {
+            // ✅ IDs extract karo
+            const cxtProdCodeIds: string[] = response.map(code => code.productCode);
 
+            // ✅ Map bana lo ID → Object (fast lookup)
+            const cxtProdCodeMap: Record<string, CxtProdCode> = keyBy(allCodes, 'productCode');
 
----
+            // ✅ Sorting logic (optional, jaise transaction properties me tha)
+            return sortBy(
+              compact(cxtProdCodeIds.map(id => cxtProdCodeMap[id])),
+              'productCode'
+            );
+          })
+        );
+      })
+    );
+}
 
-✅ Step-by-Step Fix:
+// ✅ Helper for caching
+private cxtProdCodeCache$?: Observable<CxtProdCode[]>;
 
-1. Move cxtProdCodeOptions$ logic into setInputOptions()’s combineLatest.
-
-
-2. Assign the result to a component property (cxtProdCodeOptions: SelectItem[]).
-
-
-3. Sort and use the options like the other dropdowns.
-
-
-
-
----
-
-✅ Updated setInputOptions() Example:
-
-Add this to your combineLatest([...]) array:
-
-this.store.select(getProcessingEntityId).pipe(
-  switchMap(processingEntityId =>
-    this.dataService.getCxtProdCode(processingEntityId)
-  ),
-  first()
-),
-
-Update the .subscribe(...) function to capture and assign it:
-
-.subscribe(
-  ([
-    channel,
-    eventPriority,
-    productGroup,
-    alertCategories,
-    remindercategories,
-    saveMotives,
-    claimCategories,
-    reviewCategories,
-    throwbackCategories,
-    transactionProperties,
-    counterPartyCountry,
-    productDetailsList,
-    cxtProdCodes // <-- Add here
-  ]) => {
-    // Existing code...
-
-    this.cxtProdCodeOptions = [{ prodCodeName: 'None' }, ...cxtProdCodes].map(item => ({
-      label: item.prodCodeName,
-      value: item.prodCodeName
-    }));
-
-    sortItems(this.cxtProdCodeOptions);
-
-    // Existing assignments...
+getCachedCxtProdCode(): Observable<CxtProdCode[]> {
+  if (!this.cxtProdCodeCache$) {
+    this.cxtProdCodeCache$ = this.staticDataService
+      .getCxtProdCode('BNPPUID', undefined, undefined, 'body', false)
+      .pipe(shareReplay(1));
   }
-);
+  return this.cxtProdCodeCache$;
+}
 
 
 ---
 
-✅ Also, Add to Component Properties:
+🔥 Step 2: Blotter.component.ts – CASE add karna
 
-Declare the following at the top with other dropdown variables:
+📁 blotter.component.ts
 
-cxtProdCodeOptions: SelectItem[] = [];
+case BUFFER_FUNCTION.GET_CXT_PROD_CODE:
+  this.getThrowbacks()
+    .pipe(concatMap(() => this.initiateEventDataService.getCxtProdCode(data.id, keys)))
+    .subscribe((cxtProdCodes: CxtProdCode[]) => {
+      const productCodeLabels = cxtProdCodes
+        .filter(code => code.productCode) // ✅ Filter if needed
+        .map(code => code.productCode)
+        .join(', ');
+
+      return onLoad({ ...data, productCodeLabels });
+    });
+  break;
 
 
 ---
 
-✅ Final Touch:
+🔥 Step 3: Enum mein entry add karo
 
-You can now bind cxtProdCodeOptions to a dropdown in your template as needed, just like other options such as eventPriorityOptions.
+📁 buffer-function.enum.ts (ya jaha define hai)
 
+export enum BUFFER_FUNCTION {
+  GET_USER_NAME_BY_ID = 'GET_USER_NAME_BY_ID',
+  GET_TRANSACTION_PROPERTIES = 'GET_TRANSACTION_PROPERTIES',
+  GET_CXT_PROD_CODE = 'GET_CXT_PROD_CODE'  // ✅ NEW
+}
 
----
-
-✅ Summary:
-
-Your original cxtProdCodeOptions$ was a good start.
-
-You now moved the logic inside setInputOptions() to keep it consistent with the rest.
-
-You're using combineLatest([...]) to wait for all observables.
-
-You store the result in a local property (cxtProdCodeOptions) and sort it.
-
-
-Let me know if you'd like help adding this to your HTML template as well!
