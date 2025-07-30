@@ -1,73 +1,53 @@
 
-📁 initiate-event-data.service.ts
 
-getCxtProdCode(processingEntityId: string, wfr: string): Observable<CxtProdCode[]> {
-  return this.staticDataService
-    .getCxtProdCode('BNPPUID', undefined, undefined, 'body', false)
-    .pipe(
-      switchMap((response: CxtProdCode[]) => {
-        // ✅ Future-proofing: agar aur mapping/filtering karni ho toh yahan kare
-        return this.getCachedCxtProdCode().pipe(
-          map((allCodes: CxtProdCode[]) => {
-            // ✅ IDs extract karo
-            const cxtProdCodeIds: string[] = response.map(code => code.productCode);
+📂 static-data.service.ts
 
-            // ✅ Map bana lo ID → Object (fast lookup)
-            const cxtProdCodeMap: Record<string, CxtProdCode> = keyBy(allCodes, 'productCode');
-
-            // ✅ Sorting logic (optional, jaise transaction properties me tha)
-            return sortBy(
-              compact(cxtProdCodeIds.map(id => cxtProdCodeMap[id])),
-              'productCode'
-            );
-          })
-        );
-      })
-    );
-}
-
-// ✅ Helper for caching
-private cxtProdCodeCache$?: Observable<CxtProdCode[]>;
-
-getCachedCxtProdCode(): Observable<CxtProdCode[]> {
-  if (!this.cxtProdCodeCache$) {
-    this.cxtProdCodeCache$ = this.staticDataService
-      .getCxtProdCode('BNPPUID', undefined, undefined, 'body', false)
-      .pipe(shareReplay(1));
-  }
-  return this.cxtProdCodeCache$;
+getCxtProdCode(bnppuid: string): Observable<CxtProdCode[]> {
+  // ✅ OpenAPI client call (auto‑generated method)
+  return this.apiClient.getCxtProdCode(bnppuid);
 }
 
 
 ---
 
-🔥 Step 2: Blotter.component.ts – CASE add karna
+📂 data.service.ts
 
-📁 blotter.component.ts
+getCxtProdCode(processingEntity: string): Observable<CxtProdCode[]> {
+  return this.storeService.checkInStore<CxtProdCode[]>(
+    StaticDataType.CXT_PROD_CODE,                           // ✅ Store key for caching
+    this.staticDataService.getCxtProdCode('BNPPUID'),       // ✅ Call OpenAPI service
+    processingEntity                                        // ✅ Context for cache
+  );
+}
+
+
+
+📂 Where you handle the BUFFER_FUNCTION case
 
 case BUFFER_FUNCTION.GET_CXT_PROD_CODE:
-  this.getThrowbacks()
-    .pipe(concatMap(() => this.initiateEventDataService.getCxtProdCode(data.id, keys)))
-    .subscribe((cxtProdCodes: CxtProdCode[]) => {
-      const productCodeLabels = cxtProdCodes
-        .filter(code => code.productCode) // ✅ Filter if needed
-        .map(code => code.productCode)
-        .join(', ');
+  this.dataService.getCxtProdCode(data.id).subscribe((codes: CxtProdCode[]) => {
 
-      return onLoad({ ...data, productCodeLabels });
-    });
-  break;
+    // ✅ Filter codes based on eventId from data.id
+    const filteredCodes = codes.filter(code => code.eventId === data.id);
+
+    // ✅ Join prodCodeName values into one string
+    const productCodeLabels = filteredCodes
+      .map(code => code.prodCodeName)
+      .join(', ');
+
+    // ✅ Return updated data
+    return onLoad({ ...data, productCodeLabels });
+  });
+break;
 
 
----
 
-🔥 Step 3: Enum mein entry add karo
+📂 StaticDataType.ts (if not defined yet)
 
-📁 buffer-function.enum.ts (ya jaha define hai)
+Make sure you have CXT_PROD_CODE key in your static types enum:
 
-export enum BUFFER_FUNCTION {
-  GET_USER_NAME_BY_ID = 'GET_USER_NAME_BY_ID',
-  GET_TRANSACTION_PROPERTIES = 'GET_TRANSACTION_PROPERTIES',
-  GET_CXT_PROD_CODE = 'GET_CXT_PROD_CODE'  // ✅ NEW
+export enum StaticDataType {
+  TRANSACTION_PROPERTY = 'TRANSACTION_PROPERTY',
+  BOP_CODE = 'BOP_CODE',
+  CXT_PROD_CODE = 'CXT_PROD_CODE'   // ✅ Add this line
 }
-
