@@ -1,1 +1,21 @@
 
+List<CxtProdCode> cxtProdCodeList = ReferentialUtil.getCxtProdCode(bnppuid);
+
+eventEntityPage.getContent().forEach(e -> {
+    String prodCode = e.getExternalTrackAndTraceEntity() != null
+            ? e.getExternalTrackAndTraceEntity().getProdCode()
+            : null;
+
+    if (prodCode != null) {
+        // Matching prodCode ka prodCodeName find karo
+        String prodCodeName = cxtProdCodeList.stream()
+                .filter(c -> prodCode.equals(c.getProdCode()))
+                .map(CxtProdCode::getProdCodeName)
+                .findFirst()
+                .orElse(null);
+
+        e.setProdCode(prodCodeName);
+    } else {
+        e.setProdCode(null);
+    }
+});
