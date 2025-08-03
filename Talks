@@ -1,58 +1,6 @@
-for (DpwEventExportDTO dpwEventExportDTO: eventExportDtoList) {
+@Repository
+public interface ExternalTrackAndTraceRepository extends JpaRepository<ExternalTrackAndTrace, Long> {
 
-    setSystemSpecificDateTimeForEvent(dpwEventExportDTO, timeZone);
-
-    dpwEventExportDTO.setTransactionPropertyName(
-        transactionPropertyService.getPropertyNames(dpwEventExportDTO.getId(), propertyIdNameMap)
-    );
-
-    dpwEventExportDTO.setCxtProdCode(); // ← yaha prodCodeName set karna hai
-}
-
-
----
-
-✅ Step-by-step:
-
-1. Pehle hi cache se list le lo:
-
-List<CxtProdCode> cxtProdCodeList = ReferentialUtil.getCxtProdCode(bnppuid);
-
-
-2. List ko Map me convert karo fast lookup ke liye:
-
-Map<String, String> prodCodeMap = cxtProdCodeList.stream()
-    .collect(Collectors.toMap(CxtProdCode::getProdCode, CxtProdCode::getProdCodeName));
-
-
-3. Loop me ExternalTrackAndTraceEntity se prodCode nikalo aur dpwEventExportDTO me prodCodeName set karo.
-
-
-
-
----
-
-✅ Final Code:
-
-List<CxtProdCode> cxtProdCodeList = ReferentialUtil.getCxtProdCode(bnppuid);
-
-Map<String, String> prodCodeMap = cxtProdCodeList.stream()
-        .collect(Collectors.toMap(CxtProdCode::getProdCode, CxtProdCode::getProdCodeName));
-
-for (DpwEventExportDTO dpwEventExportDTO : eventExportDtoList) {
-
-    setSystemSpecificDateTimeForEvent(dpwEventExportDTO, timeZone);
-
-    dpwEventExportDTO.setTransactionPropertyName(
-        transactionPropertyService.getPropertyNames(dpwEventExportDTO.getId(), propertyIdNameMap)
-    );
-
-    // ✅ yaha prodCode name set hoga
-    String prodCode = dpwEventExportDTO.getExternalTrackAndTraceEntity() != null
-            ? dpwEventExportDTO.getExternalTrackAndTraceEntity().getProdCode()
-            : null;
-
-    dpwEventExportDTO.setCxtProdCode(
-            prodCode != null ? prodCodeMap.get(prodCode) : null
-    );
+    @Query("SELECT e.prodCode FROM ExternalTrackAndTrace e WHERE e.eventEntity.id = :eventId")
+    String findProdCodeByEventId(@Param("eventId") Long eventId);
 }
