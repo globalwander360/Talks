@@ -2,16 +2,9 @@ else {
     Page<RequestEntity> requestEntityPage = repository.findAll(specification, pageRequest);
     List<CxtProdCode> cxtProdCodeList = referentialutil.getCxtProdCode(bnppuid);
 
-    RequestListsPage mappedPage = DpwDTOConverter.convertToResourcePage(
-            requestEntityPage,
-            RequestListsPage.class,
-            Request.class,
-            customQueueCount
-    );
-
-    mappedPage.getResults().forEach(request -> {
-        String prodCode = request.getExternalTrackAndTraceEntity() != null
-                ? request.getExternalTrackAndTraceEntity().getProdCode()
+    requestEntityPage.getContent().forEach(entity -> {
+        String prodCode = entity.getExternalTrackAndTraceEntity() != null
+                ? entity.getExternalTrackAndTraceEntity().getProdCode()
                 : null;
 
         if (prodCode != null) {
@@ -20,11 +13,16 @@ else {
                     .map(CxtProdCode::getProdCodeName)
                     .findFirst()
                     .orElse(null);
-            request.setProdCode(prodCodeName);
+            entity.setProdCode(prodCodeName);
         } else {
-            request.setProdCode(null);
+            entity.setProdCode(null);
         }
     });
 
-    requestListsPage = mappedPage;
+    requestListsPage = DpwDTOConverter.convertToResourcePage(
+            requestEntityPage,
+            RequestListsPage.class,
+            Request.class,
+            customQueueCount
+    );
 }
