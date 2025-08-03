@@ -1,6 +1,30 @@
-@Repository
-public interface ExternalTrackAndTraceRepository extends JpaRepository<ExternalTrackAndTrace, Long> {
+else {
+    Page<RequestEntity> requestEntityPage = repository.findAll(specification, pageRequest);
+    List<CxtProdCode> cxtProdCodeList = referentialutil.getCxtProdCode(bnppuid);
 
-    @Query("SELECT e.prodCode FROM ExternalTrackAndTrace e WHERE e.eventEntity.id = :eventId")
-    String findProdCodeByEventId(@Param("eventId") Long eventId);
+    RequestListsPage mappedPage = DpwDTOConverter.convertToResourcePage(
+            requestEntityPage,
+            RequestListsPage.class,
+            Request.class,
+            customQueueCount
+    );
+
+    mappedPage.getResults().forEach(request -> {
+        String prodCode = request.getExternalTrackAndTraceEntity() != null
+                ? request.getExternalTrackAndTraceEntity().getProdCode()
+                : null;
+
+        if (prodCode != null) {
+            String prodCodeName = cxtProdCodeList.stream()
+                    .filter(c -> prodCode.equals(c.getProdCode()))
+                    .map(CxtProdCode::getProdCodeName)
+                    .findFirst()
+                    .orElse(null);
+            request.setProdCode(prodCodeName);
+        } else {
+            request.setProdCode(null);
+        }
+    });
+
+    requestListsPage = mappedPage;
 }
