@@ -1,28 +1,56 @@
-else {
-    Page<RequestEntity> requestEntityPage = repository.findAll(specification, pageRequest);
-    List<CxtProdCode> cxtProdCodeList = referentialutil.getCxtProdCode(bnppuid);
+@Override
+public RequestListsPage filterRequests(String q, PageRequest pageRequest, String bnppuid, Boolean exportFile, String customQueueCount) {
 
-    requestEntityPage.getContent().forEach(entity -> {
-        String prodCode = entity.getExternalTrackAndTraceEntity() != null
-                ? entity.getExternalTrackAndTraceEntity().getProdCode()
-                : null;
+    RequestListsPage requestListsPage;
 
-        if (prodCode != null) {
-            String prodCodeName = cxtProdCodeList.stream()
-                    .filter(c -> prodCode.equals(c.getProdCode()))
-                    .map(CxtProdCode::getProdCodeName)
-                    .findFirst()
-                    .orElse(null);
-            entity.setProdCode(prodCodeName);
-        } else {
-            entity.setProdCode(null);
+    try {
+        Specification<RequestEntity> specification = dpwEventHelper.createSpecificationForSearchOnRequestFields(q);
+        Page<RequestEntity> requestEntityPage = requestEntityRepository.findAll(specification, pageRequest);
+
+        if (requestEntityPage != null && requestEntityPage.hasContent()) {
+            List<CxtProdCode> cxtProdCodeList = referentialutil.getCxtProdCode(bnppuid);
+
+            requestEntityPage.getContent().forEach(entity -> {
+                String prodCode = entity.getExternalTrackAndTraceEntity() != null
+                        ? entity.getExternalTrackAndTraceEntity().getProdCode()
+                        : null;
+
+                if (prodCode != null) {
+                    String prodCodeName = cxtProdCodeList.stream()
+                            .filter(c -> prodCode.equals(c.getProdCode()))
+                            .map(CxtProdCode::getProdCodeName)
+                            .findFirst()
+                            .orElse(null);
+                    entity.setProdCode(prodCodeName);
+                } else {
+                    entity.setProdCode(null);
+                }
+            });
         }
-    });
 
-    requestListsPage = DpwDTOConverter.convertToResourcePage(
-            requestEntityPage,
-            RequestListsPage.class,
-            Request.class,
-            customQueueCount
-    );
+        requestListsPage = DpwDTOConverter.convertToResourcePage(
+                requestEntityPage,
+                RequestListsPage.class,
+                Request.class,
+                customQueueCount
+        );
+
+        if (requestListsPage != null) {
+            requestListsPage.setExcelcount(Math.max(
+                    (Math.toIntExact(requestEntityPage.getTotalElements()) - exportLimit), 0));
+
+            for (Request request : requestListsPage.getResults()) {
+                setCustomerAccountAndLockedByFromRequest(request, exportFile);
+
+                if (request.getSerializedobject() != null) {
+                    request.setSerializedobject(setDetailsFromSerializedObject(request));
+                }
+            }
+        }
+
+    } catch (NumberFormatException | RSQLParserException e) {
+        throw new AthensException("Exception occurred in filterRequests(): ", e);
+    }
+
+    return requestListsPage;
 }
