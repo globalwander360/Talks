@@ -1,1 +1,55 @@
+package com.bnpparibas.dpw.service;
 
+import com.bnpparibas.dpe.entity.CxtProdCodeEntity;
+import com.bnpparibas.dpe.referential.model.CxtProdCode;
+import com.bnpparibas.dpe.repository.CxtProdCodeRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
+class CxtProdCodeServiceImplTest {
+
+    @Mock
+    private CxtProdCodeRepository cxtProdCodeRepository;
+
+    @InjectMocks
+    private CxtProdCodeServiceImpl cxtProdCodeService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testGetAllCodes_ShouldReturnMappedCodes() {
+        // Arrange
+        CxtProdCodeEntity entity1 = new CxtProdCodeEntity();
+        entity1.setProdCode("P001");
+        entity1.setProdCodeName("Product A");
+
+        CxtProdCodeEntity entity2 = new CxtProdCodeEntity();
+        entity2.setProdCode("P002");
+        entity2.setProdCodeName("Product B");
+
+        List<CxtProdCodeEntity> mockEntities = Arrays.asList(entity1, entity2);
+        when(cxtProdCodeRepository.findAll()).thenReturn(mockEntities);
+
+        // Act
+        List<CxtProdCode> result = cxtProdCodeService.getAllCodes();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals("P001", result.get(0).getProdCode());
+        assertEquals("Product A", result.get(0).getProdCodeName());
+        assertEquals("P002", result.get(1).getProdCode());
+        assertEquals("Product B", result.get(1).getProdCodeName());
+    }
+}
