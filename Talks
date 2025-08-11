@@ -42,11 +42,11 @@ public class DpwEventPdfExporter {
     private static final String EVENT_PRIORITY = "Event priority: ";
     private static final String EVENT_INITIATION = "Event Initiation: ";
     private static final String SPECIAL_INSTRUCTION = "Special Instruction: ";
-    
-    // Maximum character limits
+
+    // Limits
     private static final int MAX_HEADER_VALUE_LENGTH = 50;
     private static final int MAX_COMMENT_LENGTH = 1200;
-    private static final int CHUNK_SIZE = 400; // Break long comments into smaller chunks
+    private static final int CHUNK_SIZE = 400;
     private static final String MASK_SUFFIX = "***";
 
     @Value("${event.coversheet.spacing.betweenproperties}")
@@ -104,44 +104,38 @@ public class DpwEventPdfExporter {
             float lineSpacing = 22f;
             float availableWidth = document.right() - document.left();
 
-            // Draw header fields with wrapping support
-            headerY = drawHeaderField(cb, MFR, maskValue(getOrDefault(requestEvent.getMfr())), 
-                                    keyFont, valueFont, rightX, headerY, availableWidth);
-            
-            headerY = drawHeaderField(cb, UMFR, maskValue(getOrDefault(requestEvent.getUmfr())), 
-                                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
-            
-            headerY = drawHeaderField(cb, EVENTID, maskValue(getOrDefault(requestEvent.getId())), 
-                                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
-            
-            headerY = drawHeaderField(cb, CUSTOMER_ID, maskValue(getOrDefault(requestEvent.getCustId())), 
-                                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
-            
-            headerY = drawHeaderField(cb, CUSTOMER_NAME, maskValue(getOrDefault(requestEvent.getCusName())), 
-                                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
+            headerY = drawHeaderField(cb, MFR, maskValue(getOrDefault(requestEvent.getMfr())),
+                    keyFont, valueFont, rightX, headerY, availableWidth);
+
+            headerY = drawHeaderField(cb, UMFR, maskValue(getOrDefault(requestEvent.getUmfr())),
+                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
+
+            headerY = drawHeaderField(cb, EVENTID, maskValue(getOrDefault(requestEvent.getId())),
+                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
+
+            headerY = drawHeaderField(cb, CUSTOMER_ID, maskValue(getOrDefault(requestEvent.getCustId())),
+                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
+
+            headerY = drawHeaderField(cb, CUSTOMER_NAME, maskValue(getOrDefault(requestEvent.getCusName())),
+                    keyFont, valueFont, rightX, headerY - lineSpacing, availableWidth);
         }
 
-        private float drawHeaderField(PdfContentByte cb, String label, String value, Font keyFont, 
-                                    Font valueFont, float rightX, float y, float availableWidth) {
-            
+        private float drawHeaderField(PdfContentByte cb, String label, String value, Font keyFont,
+                                      Font valueFont, float rightX, float y, float availableWidth) {
+
             float labelWidth = keyFont.getBaseFont().getWidthPoint(label, keyFont.getSize());
             float valueWidth = valueFont.getBaseFont().getWidthPoint(value, valueFont.getSize());
             float totalWidth = labelWidth + valueWidth;
-            
-            // Check if content fits on one line
+
             if (totalWidth <= availableWidth) {
-                // Single line - right aligned
                 float startX = rightX - totalWidth;
                 drawText(cb, label, keyFont, startX, y);
                 drawText(cb, value, valueFont, startX + labelWidth, y);
                 return y;
             } else {
-                // Multi-line - label right aligned, value on next line left aligned
                 float labelStartX = rightX - labelWidth;
                 drawText(cb, label, keyFont, labelStartX, y);
-                
-                // Value on next line, left aligned
-                float valueY = y - 15f; // Move down for next line
+                float valueY = y - 15f;
                 drawText(cb, value, valueFont, document.left(), valueY);
                 return valueY;
             }
@@ -159,8 +153,6 @@ public class DpwEventPdfExporter {
             if (value == null || value.equals("-") || value.length() <= MAX_HEADER_VALUE_LENGTH) {
                 return value;
             }
-            
-            // Mask long values
             int visibleLength = MAX_HEADER_VALUE_LENGTH - MASK_SUFFIX.length();
             return value.substring(0, visibleLength) + MASK_SUFFIX;
         }
@@ -174,7 +166,7 @@ public class DpwEventPdfExporter {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Document document = new Document(PageSize.A4);
         document.setMargins(36, 36, 140, 36);
-        
+
         PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
 
         Font keyFont = FontFactory.getFont(keyFontProp);
@@ -187,51 +179,77 @@ public class DpwEventPdfExporter {
 
         document.open();
 
-        // Product Group
-        Paragraph e5 = new Paragraph();
-        Chunk productGroupKey = new Chunk(PRODUCT_GROUP, keyFont);
-        Chunk productGroupValue = new Chunk(Objects.toString(requestEvent.getProductGroupName(), ""), valueFont);
-        e5.add(productGroupKey);
-        e5.add(productGroupValue);
-        e5.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
-        e5.setAlignment(Integer.parseInt(alignmentLeft));
-        document.add(e5);
+        addProperty(document, PRODUCT_GROUP, requestEvent.getProductGroupName(), keyFont, valueFont);
+        addProperty(document, PRODUCT, requestEvent.getProductName(), keyFont, valueFont);
+        addProperty(document, EVENT, requestEvent.getEventName(), keyFont, valueFont);
+        addProperty(document, EVENT_PRIORITY, requestEvent.getEventPriorityName(), keyFont, valueFont);
 
-        // Product
-        Paragraph e6 = new Paragraph();
-        Chunk productKey = new Chunk(PRODUCT, keyFont);
-        Chunk productValue = new Chunk(Objects.toString(requestEvent.getProductName(), ""), valueFont);
-        e6.add(productKey);
-        e6.add(productValue);
-        e6.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
-        e6.setAlignment(Integer.parseInt(alignmentLeft));
-        document.add(e6);
-
-        // Event
-        Paragraph e7 = new Paragraph();
-        Chunk eventKey = new Chunk(EVENT, keyFont);
-        Chunk eventValue = new Chunk(Objects.toString(requestEvent.getEventName(), ""), valueFont);
-        e7.add(eventKey);
-        e7.add(eventValue);
-        e7.setAlignment(Integer.parseInt(alignmentLeft));
-        e7.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
-        document.add(e7);
-
-        // Event Priority
-        Paragraph e8 = new Paragraph();
-        Chunk eventPriorityKey = new Chunk(EVENT_PRIORITY, keyFont);
-        Chunk eventPriorityValue = new Chunk(Objects.toString(requestEvent.getEventPriorityName(), ""), valueFont);
-        e8.add(eventPriorityKey);
-        e8.add(eventPriorityValue);
-        e8.setAlignment(Integer.parseInt(alignmentLeft));
-        e8.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
-        document.add(e8);
-
-        // Event Initiation
         String initiationDate = dateFormatter(requestEvent.getSystemCreationDate());
-        Paragraph e9 = new Paragraph();
-        Chunk eventInitiationKey = new Chunk(EVENT_INITIATION, keyFont);
-        Chunk eventInitiationValue = new Chunk(initiationDate != null ? initiationDate + " (UTC)" : "", valueFont);
+        addProperty(document, EVENT_INITIATION, initiationDate != null ? initiationDate + " (UTC)" : "", keyFont, valueFont);
+
+        List<SpecialInstructionsEntity> instructions = specialInstructionsRepository
+                .findByEventIdOrderByCreatedOnDesc(requestEvent.getId());
+
+        if (instructions != null && !instructions.isEmpty()) {
+            Paragraph headerParagraph = new Paragraph(SPECIAL_INSTRUCTION, valueFont);
+            headerParagraph.setAlignment(Element.ALIGN_CENTER);
+            headerParagraph.setSpacingAfter(5f);
+            document.add(headerParagraph);
+            createTwoColumnInstructions(document, writer, instructions, keyFont);
+        }
+
+        document.close();
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private void addProperty(Document document, String key, String value, Font keyFont, Font valueFont) throws DocumentException {
+        Paragraph paragraph = new Paragraph();
+        paragraph.add(new Chunk(key, keyFont));
+        paragraph.add(new Chunk(Objects.toString(value, ""), valueFont));
+        paragraph.setSpacingAfter(Float.parseFloat(betweenProperties));
+        paragraph.setAlignment(Integer.parseInt(alignmentLeft));
+        document.add(paragraph);
+    }
+
+    private List<String> breakCommentIntoChunks(String comment) {
+        List<String> chunks = new ArrayList<>();
+        if (comment == null || comment.isEmpty()) {
+            chunks.add("");
+            return chunks;
+        }
+        if (comment.length() <= MAX_COMMENT_LENGTH) {
+            chunks.add(comment);
+            return chunks;
+        }
+
+        int startIndex = 0;
+        while (startIndex < comment.length()) {
+            int endIndex = Math.min(startIndex + CHUNK_SIZE, comment.length());
+            if (endIndex < comment.length()) {
+                int lastSpace = comment.lastIndexOf(' ', endIndex);
+                int lastPeriod = comment.lastIndexOf('.', endIndex);
+                int lastComma = comment.lastIndexOf(',', endIndex);
+                int breakPoint = Math.max(lastPeriod, Math.max(lastSpace, lastComma));
+                if (breakPoint > startIndex + (CHUNK_SIZE / 2)) {
+                    endIndex = breakPoint + 1;
+                }
+            }
+            chunks.add(comment.substring(startIndex, endIndex).trim());
+            startIndex = endIndex;
+        }
+        return chunks;
+    }
+
+    private String cleanHtml(String comment) {
+        return comment.replaceAll("<[^>]*>", "").trim();
+    }
+
+    private String dateFormatter(LocalDateTime dateTime) {
+        if (dateTime == null) return null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return dateTime.format(formatter);
+    }
+} "", valueFont);
         e9.add(eventInitiationKey);
         e9.add(eventInitiationValue);
         e9.setAlignment(Integer.parseInt(alignmentLeft));
