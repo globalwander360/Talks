@@ -45,7 +45,8 @@ public class DpwEventPdfExporter {
     
     // Maximum character limits
     private static final int MAX_HEADER_VALUE_LENGTH = 50;
-    private static final int MAX_COMMENT_LENGTH = 1250;
+    private static final int MAX_COMMENT_LENGTH = 1200;
+    private static final int CHUNK_SIZE = 400; // Break long comments into smaller chunks
     private static final String MASK_SUFFIX = "***";
 
     @Value("${event.coversheet.spacing.betweenproperties}")
@@ -273,30 +274,69 @@ public class DpwEventPdfExporter {
                 yStart = currentY - 20;
             }
         } catch (Exception e) {
-            // Use default yStart
+            // Use default yStart if there's an error getting current position
+            System.err.println("Error getting vertical position: " + e.getMessage());
         }
 
-        float yEnd = bottom;
+        float yEnd = bottom + 50; // Add some margin from bottom
         List<Paragraph> paragraphs = buildInstructionParagraphs(instructions, font, writer);
         int instructionIndex = 0;
+        int maxPages = 50; // Safety limit to prevent infinite loops
+        int pageCount = 0;
 
-        while (instructionIndex < paragraphs.size()) {
-            ColumnText leftColumn = new ColumnText(writer.getDirectContent());
-            ColumnText rightColumn = new ColumnText(writer.getDirectContent());
+        while (instructionIndex < paragraphs.size() && pageCount < maxPages) {
+            try {
+                ColumnText leftColumn = new ColumnText(writer.getDirectContent());
+                ColumnText rightColumn = new ColumnText(writer.getDirectContent());
 
-            leftColumn.setSimpleColumn(left, yEnd, left + columnWidth, yStart);
-            rightColumn.setSimpleColumn(left + columnWidth + COLUMN_GAP, yEnd, 
-                                      left + 2 * columnWidth + COLUMN_GAP, yStart);
+                // Set up columns with proper boundaries
+                leftColumn.setSimpleColumn(left, yEnd, left + columnWidth, yStart);
+                rightColumn.setSimpleColumn(left + columnWidth + COLUMN_GAP, yEnd, 
+                                          left + 2 * columnWidth + COLUMN_GAP, yStart);
 
-            instructionIndex = fillColumn(leftColumn, paragraphs, instructionIndex);
-            if (instructionIndex < paragraphs.size()) {
-                instructionIndex = fillColumn(rightColumn, paragraphs, instructionIndex);
+                // Set text leading (line spacing) to prevent text overlap
+                leftColumn.setLeading(14f);
+                rightColumn.setLeading(14f);
+
+                // Fill left column
+                int prevIndex = instructionIndex;
+                instructionIndex = fillColumn(leftColumn, paragraphs, instructionIndex);
+                
+                // Fill right column if there are more paragraphs
+                if (instructionIndex < paragraphs.size()) {
+                    instructionIndex = fillColumn(rightColumn, paragraphs, instructionIndex);
+                }
+
+                // Safety check to prevent infinite loops
+                if (instructionIndex == prevIndex) {
+                    System.err.println("No progress made, skipping remaining content");
+                    break;
+                }
+
+                // Add new page if more content remains
+                if (instructionIndex < paragraphs.size()) {
+                    document.newPage();
+                    yStart = pageHeight - top;
+                    pageCount++;
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error creating columns on page " + (pageCount + 1) + ": " + e.getMessage());
+                // Try to recover by moving to next page
+                if (instructionIndex < paragraphs.size()) {
+                    document.newPage();
+                    yStart = pageHeight - top;
+                    pageCount++;
+                    // Skip problematic content if we can't recover
+                    if (pageCount > 3) { // Allow a few retries
+                        instructionIndex++; // Skip current problematic paragraph
+                    }
+                }
             }
+        }
 
-            if (instructionIndex < paragraphs.size()) {
-                document.newPage();
-                yStart = pageHeight - top;
-            }
+        if (pageCount >= maxPages) {
+            System.err.println("Maximum page limit reached. Some content may have been skipped.");
         }
     }
 
@@ -305,19 +345,44 @@ public class DpwEventPdfExporter {
         int currentIndex = startIndex;
 
         while (currentIndex < paragraphs.size()) {
+            // Create a test column to check if content fits
             ColumnText testColumn = ColumnText.duplicate(column);
+            
+            // Add current paragraph to test column
             testColumn.addElement(paragraphs.get(currentIndex));
-            int status = testColumn.go(true);
-
-            if (ColumnText.hasMoreText(status)) {
-                break;
-            } else {
-                column.addElement(paragraphs.get(currentIndex));
-                currentIndex++;
+            
+            try {
+                int status = testColumn.go(true); // Simulate mode
+                
+                if (ColumnText.hasMoreText(status)) {
+                    // Content doesn't fit, break here
+                    break;
+                } else {
+                    // Content fits, add to actual column
+                    column.addElement(paragraphs.get(currentIndex));
+                    currentIndex++;
+                }
+            } catch (Exception e) {
+                // If there's an error with the test, try adding anyway
+                // This prevents blocking on problematic content
+                try {
+                    column.addElement(paragraphs.get(currentIndex));
+                    currentIndex++;
+                } catch (Exception addError) {
+                    // If adding fails, skip this paragraph and continue
+                    System.err.println("Skipping problematic paragraph: " + addError.getMessage());
+                    currentIndex++;
+                    break;
+                }
             }
         }
 
-        column.go();
+        try {
+            column.go(); // Render the column
+        } catch (Exception e) {
+            System.err.println("Error rendering column: " + e.getMessage());
+        }
+        
         return currentIndex;
     }
 
@@ -332,19 +397,84 @@ public class DpwEventPdfExporter {
             String createdBy = instruction.getCreatedByUser() != null ? 
                 instruction.getCreatedByUser() : "";
             String comment = instruction.getComment() != null ? 
-                truncateComment(cleanHtml(instruction.getComment())) : "";
+                cleanHtml(instruction.getComment()) : "";
 
-            String line = String.format("[%s] [%s]\n%d) %s", createdOn, createdBy, count, comment);
+            // Handle long comments by breaking them into chunks
+            List<String> commentChunks = breakCommentIntoChunks(comment);
+            
+            for (int i = 0; i < commentChunks.size(); i++) {
+                String chunk = commentChunks.get(i);
+                String line;
+                
+                if (i == 0) {
+                    // First chunk includes the header
+                    line = String.format("[%s] [%s]\n%d) %s", createdOn, createdBy, count, chunk);
+                } else {
+                    // Subsequent chunks are continuation
+                    line = String.format("   (continued...) %s", chunk);
+                }
 
-            Paragraph p = new Paragraph(line, font);
-            p.setSpacingAfter(15f);
-            p.setIndentationLeft(5f);
-            p.setKeepTogether(true);
-            list.add(p);
+                Paragraph p = new Paragraph(line, font);
+                p.setSpacingAfter(i == commentChunks.size() - 1 ? 15f : 8f); // Less spacing for continuations
+                p.setIndentationLeft(5f);
+                p.setKeepTogether(false); // Allow breaking across pages for long content
+                
+                // Only set alignment for non-continuation paragraphs
+                if (i == 0) {
+                    p.setAlignment(Element.ALIGN_LEFT);
+                }
+                
+                list.add(p);
+            }
             count++;
         }
 
         return list;
+    }
+
+    private List<String> breakCommentIntoChunks(String comment) {
+        List<String> chunks = new ArrayList<>();
+        
+        if (comment == null || comment.isEmpty()) {
+            chunks.add("");
+            return chunks;
+        }
+        
+        // If comment is within limit, return as single chunk
+        if (comment.length() <= MAX_COMMENT_LENGTH) {
+            chunks.add(comment);
+            return chunks;
+        }
+        
+        // Break into smaller chunks for better handling
+        int startIndex = 0;
+        
+        while (startIndex < comment.length()) {
+            int endIndex = Math.min(startIndex + CHUNK_SIZE, comment.length());
+            
+            // Try to break at word boundary if possible
+            if (endIndex < comment.length()) {
+                int lastSpace = comment.lastIndexOf(' ', endIndex);
+                int lastPeriod = comment.lastIndexOf('.', endIndex);
+                int lastComma = comment.lastIndexOf(',', endIndex);
+                
+                // Find the best break point (prefer period, then space, then comma)
+                int breakPoint = Math.max(lastPeriod, Math.max(lastSpace, lastComma));
+                
+                if (breakPoint > startIndex + (CHUNK_SIZE / 2)) { // Only use if it's reasonable
+                    endIndex = breakPoint + 1; // Include the punctuation/space
+                }
+            }
+            
+            String chunk = comment.substring(startIndex, endIndex).trim();
+            if (!chunk.isEmpty()) {
+                chunks.add(chunk);
+            }
+            
+            startIndex = endIndex;
+        }
+        
+        return chunks;
     }
 
     private String truncateComment(String comment) {
