@@ -1,40 +1,213 @@
-package com.bnpparibas.dpw.helpers;
+Got it — you already have the table data loading fine, and now you want to add an "Export to Excel" feature that:
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+1. Calls your backend API with the same filters / pagination (but possibly full dataset for export).
 
-import com.bnpparibas.dpw.entity.dpw.SpecialInstructionsEntity;
-import com.bnpparibas.dpw.repository.SpecialInstructionsRepository;
-import com.lowagie.text.Element;
-import com.lowagie.text.pdf.ColumnText;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfPageEventHelper;
-import org.dom4j.DocumentException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-import com.bnpparibas.dpw.controller.model.RequestEvent;
-import com.lowagie.text.Chunk;
-import com.lowagie.text.Document;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
+2. Passes query parameters in RSQL format.
 
-@Component
-public class DpwEventPdfExporter {
 
-    private static final String MFR = "MFR: ";
-    private static final String UMFR = "UMFR: ";
-    private static final String EVENTID = "Conserto Event ID: ";
-    private static final String CUSTOMER_NAME = "Customer Name: ";
+3. Is reusable so you can also use it in other components (not just Audit).
+
+
+
+Here’s how I’d approach it step-by-step:
+
+
+---
+
+1. Create a Reusable Excel Export Service
+
+We’ll make a service method that:
+
+Builds the RSQL query string.
+
+Calls the backend endpoint.
+
+Downloads the Excel file.
+
+
+export.service.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ExportService {
+
+  constructor(private http: HttpClient) {}
+
+  /**
+   * Export data as Excel file
+   * @param endpoint API endpoint for export
+   * @param rsqlQuery RSQL query string
+   * @param fileName Name of the downloaded file
+   */
+  exportToExcel(endpoint: string, rsqlQuery: string, fileName: string) {
+    const url = `${endpoint}?query=${encodeURIComponent(rsqlQuery)}`;
+    this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.click();
+      window.URL.revokeObjectURL(downloadUrl);
+    });
+  }
+}
+
+
+---
+
+2. Generate RSQL from Current Filters
+
+When the user clicks Export, you need to build the RSQL string from:
+
+eventId
+
+Any other search filters applied in the table.
+
+
+Example helper function:
+
+rsql.utils.ts
+
+export function buildAuditRsql(eventId: string, additionalFilters: any = {}): string {
+  let filters = [`eventId==${eventId}`];
+
+  if (additionalFilters.status) {
+    filters.push(`status==${additionalFilters.status}`);
+  }
+
+  if (additionalFilters.dateFrom && additionalFilters.dateTo) {
+    filters.push(`createdDate=ge=${additionalFilters.dateFrom};createdDate=le=${additionalFilters.dateTo}`);
+  }
+
+  return filters.join(';');
+}
+
+
+---
+
+3. Integrate in Your Component
+
+Now we use the reusable service + RSQL builder.
+
+audit.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { auditHeader } from '../../config/audit-header.config';
+import { ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { InitiatEventDataService } from 'app/initiate-event/shared/initiate-event-data.service';
+import { ExportService } from 'app/shared/services/export.service';
+import { buildAuditRsql } from 'app/shared/utils/rsql.utils';
+
+@Component({
+  selector: 'dpw-audit',
+  templateUrl: './audit.component.html',
+  styleUrls: ['./audit.component.scss']
+})
+export class AuditComponent implements OnInit {
+
+  audits = [];
+  totalCount;
+  header = auditHeader;
+  private _eventId;
+  eventIdChanged$ = new Subject();
+
+  constructor(
+    private route: ActivatedRoute,
+    private initiateEventDataService: InitiatEventDataService,
+    private exportService: ExportService
+  ) {
+    this.route.params.subscribe(params => {
+      this.eventId = params.eventId;
+    });
+  }
+
+  public get eventId() {
+    return this._eventId;
+  }
+
+  public set eventId(value) {
+    this._eventId = value;
+    this.eventIdChanged$.next(value);
+  }
+
+  ngOnInit(): void {
+    this.eventIdChanged$.subscribe(() => {
+      this.getAudits();
+    });
+  }
+
+  onLoadData(pagination) {
+    const { first, rows } = pagination;
+    this.getAudits(first, rows);
+  }
+
+  getAudits(skip?, take?) {
+    const params = { skip, take, eventId: this.eventId };
+    this.initiateEventDataService.getAuditListByEventId(params).subscribe((auditsLisPage: any) => {
+      const { count, results } = auditsLisPage;
+      this.totalCount = count;
+      this.audits = results;
+    });
+  }
+
+  exportAudits() {
+    const rsql = buildAuditRsql(this.eventId);
+    const endpoint = '/api/audits/export'; // your backend export endpoint
+    this.exportService.exportToExcel(endpoint, rsql, `audits-${this.eventId}.xlsx`);
+  }
+}
+
+
+---
+
+4. Update Template
+
+<div class="alignExport">
+  <p-button 
+    label="Export To Excel" 
+    severity="secondary" 
+    (onClick)="exportAudits()">
+  </p-button>
+</div>
+
+<dpw-table 
+  [data]="audits" 
+  [totalCount]="totalCount" 
+  (loadData)="onLoadData($event)" 
+  [header]="header">
+</dpw-table>
+
+
+---
+
+5. How It Works
+
+Table loading → still uses getAudits() with pagination.
+
+Export button click:
+
+Builds an RSQL string from current filters.
+
+Calls export API with full dataset (no pagination).
+
+Downloads file as Excel.
+
+
+
+
+---
+
+If you want, I can also make this completely generic so any component can pass in filters, endpoint, and file name without writing custom logic every time. That way your "other section" can use the same exportToExcel with minimal changes.
+
+Do you want me to make that reusable generic version? That way you won’t duplicate code at all.
+
+private static final String CUSTOMER_NAME = "Customer Name: ";
     private static final String CUSTOMER_ID = "Customer ID: ";
     private static final String PRODUCT_GROUP = "Product Group: ";
     private static final String PRODUCT = "Product: ";
