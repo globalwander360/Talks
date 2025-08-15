@@ -1,49 +1,41 @@
-auditExportToExcel() {
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+You can create this exact PrimeNG-style Export to Excel button (without dropdown) using a p-button with an icon and a green background.
 
-  const exportBody: Export = {
-    columns: this.header.map(h => h.name),
-    excelHeaders: this.header.map(h => h.name),
-    pgpeCodes: []
-  };
+Here’s an example:
 
-  this.eventService.exportAudit(
-    this.branchCode,
-    this.countryCode,
-    'BNPPUID',
-    this.eventId,
-    'en',
-    0,
-    this.totalCount,
-    'columnName',
-    'ASC',
-    timeZone,
-    exportBody,
-    'body',
-    true
-  ).subscribe({
-    next: (response: Blob) => {
-      const url = window.URL.createObjectURL(response);
+<p-button 
+    label="Export" 
+    icon="pi pi-file-excel" 
+    styleClass="p-button-success" 
+    (onClick)="exportToExcel()">
+</p-button>
 
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = 'export.xlsx';
+If you want it exactly like the screenshot (Excel icon + green rounded rectangle, no dropdown), use custom CSS with PrimeNG:
 
-      document.body.appendChild(anchor);
-      anchor.click();
+<button pButton 
+        type="button" 
+        class="excel-btn" 
+        (click)="exportToExcel()">
+    <i class="pi pi-file-excel"></i>
+    <span>Export</span>
+</button>
 
-      document.body.removeChild(anchor);
-      window.URL.revokeObjectURL(url);
-
-      console.log('Excel file downloaded successfully');
-    },
-    error: (error) => {
-      console.error('Export failed:', error);
-    }
-  });
-}    },
-    error: (error) => {
-      console.error('Export failed:', error);
-    }
-  });
+.excel-btn {
+    background-color: #21a366 !important; /* Excel green */
+    border: none;
+    border-radius: 8px; /* rounded corners */
+    padding: 8px 16px;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
+
+.excel-btn:hover {
+    background-color: #1e8b57 !important;
+}
+
+This will give you a non-dropdown button styled exactly like the image you sent.
+
+If you want, I can make it with the real Excel SVG icon instead of PrimeNG’s pi-file-excel so it looks pixel-perfect like your screenshot. Do you want me to make that version?
+
