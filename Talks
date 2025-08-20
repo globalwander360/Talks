@@ -1,41 +1,79 @@
-You can create this exact PrimeNG-style Export to Excel button (without dropdown) using a p-button with an icon and a green background.
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-Here’s an example:
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-<p-button 
-    label="Export" 
-    icon="pi pi-file-excel" 
-    styleClass="p-button-success" 
-    (onClick)="exportToExcel()">
-</p-button>
+import java.util.Collections;
 
-If you want it exactly like the screenshot (Excel icon + green rounded rectangle, no dropdown), use custom CSS with PrimeNG:
+class AuditControllerTest {
 
-<button pButton 
-        type="button" 
-        class="excel-btn" 
-        (click)="exportToExcel()">
-    <i class="pi pi-file-excel"></i>
-    <span>Export</span>
-</button>
+    @Mock
+    private AuditService auditService;
 
-.excel-btn {
-    background-color: #21a366 !important; /* Excel green */
-    border: none;
-    border-radius: 8px; /* rounded corners */
-    padding: 8px 16px;
-    color: white;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    @Mock
+    private AuditExportService auditExportService;
+
+    @InjectMocks
+    private AuditController auditController; // Jisme aapka exportAudit method hai
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void exportAudit_shouldReturnExcelFile_whenSuccessful() {
+        // Arrange
+        AuditDetailListsPage mockPage = new AuditDetailListsPage();
+        AuditExportDto dto = new AuditExportDto();
+        mockPage.setAuditList(Collections.singletonList(dto));
+
+        when(auditService.getAuditDetails(
+                anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyInt(), anyInt(), anyString(),
+                any(), anyString(), any(Export.class))
+        ).thenReturn(mockPage);
+
+        byte[] excelBytes = "testExcelContent".getBytes();
+        when(auditExportService.generateExcel(anyList())).thenReturn(excelBytes);
+
+        // Act
+        ResponseEntity<byte[]> response = auditController.exportAudit(
+                "BR01", "IN", "BNPPUID", "EVT01",
+                "en", 0, 10, "date", SortDirection.ASC, "Asia/Kolkata", new Export()
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertArrayEquals(excelBytes, response.getBody());
+        assertEquals("application/octet-stream", response.getHeaders().getContentType().toString());
+        assertTrue(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION).contains("export.xlsx"));
+    }
+
+    @Test
+    void exportAudit_shouldReturnInternalServerError_whenExceptionOccurs() {
+        // Arrange
+        when(auditService.getAuditDetails(
+                anyString(), anyString(), anyString(), anyString(),
+                anyString(), anyInt(), anyInt(), anyString(),
+                any(), anyString(), any(Export.class))
+        ).thenThrow(new RuntimeException("DB Error"));
+
+        // Act
+        ResponseEntity<byte[]> response = auditController.exportAudit(
+                "BR01", "IN", "BNPPUID", "EVT01",
+                "en", 0, 10, "date", SortDirection.ASC, "Asia/Kolkata", new Export()
+        );
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertNull(response.getBody());
+    }
 }
-
-.excel-btn:hover {
-    background-color: #1e8b57 !important;
-}
-
-This will give you a non-dropdown button styled exactly like the image you sent.
-
-If you want, I can make it with the real Excel SVG icon instead of PrimeNG’s pi-file-excel so it looks pixel-perfect like your screenshot. Do you want me to make that version?
-
