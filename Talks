@@ -1,74 +1,80 @@
-package com.bnpparibas.dpw.helpers;
+List<Paragraph> list = new ArrayList<>();
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import com.bnpparibas.dpw.entity.dpw.SpecialInstructionsEntity;
-import com.bnpparibas.dpw.repository.SpecialInstructionsRepository;
-import com.lowagie.text.Element;
-import com.lowagie.text.pdf.ColumnText;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfPageEventHelper;
-import com.lowagie.text.DocumentException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import com.bnpparibas.dpw.controller.model.RequestEvent;
-import com.lowagie.text.Chunk;
-import com.lowagie.text.Document;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
-
-@Component
-public class DpwEventPdfExporter {
-
-    private static final String MFR = "MFR: ";
-    private static final String UMFR = "UMFR: ";
-    private static final String EVENTID = "Conserto Event ID: ";
-    private static final String CUSTOMER_NAME = "Customer Name: ";
-    private static final String CUSTOMER_ID = "Customer ID: ";
-    private static final String PRODUCT_GROUP = "Product Group: ";
-    private static final String PRODUCT = "Product: ";
-    private static final String EVENT = "Event: ";
-    private static final String EVENT_PRIORITY = "Event Priority: ";
-    private static final String EVENT_INITIATION = "Event Initiation: ";
-    private static final String SPECIAL_INSTRUCTION = "Special Instruction: ";
-
-    @Value("${event.coversheet.spacing.betweenproperties}")
-    private String betweenProperties;
-
-    @Value("${event.coversheet.spacing.afterheader}")
-    private String afterHeader;
-
-    @Value("${event.coversheet.spacing.beforefooter}")
-    private String beforeFooter;
-
-    @Value("${event.coversheet.spacing.betweenparagraph}")
-    private String betweenParagraph;
-
-    @Value("${event.coversheet.font.keysize}")
-    private String keySize;
-
-    @Value("${event.coversheet.font.valuesize}")
-    private String valueSize;
-
-    @Value("${event.coversheet.font.keyfont}")
-    private String keyFontProp;
-
-    @Value("${event.coversheet.font.valuefont}")
-    private String valueFontProp;
-
-    @Value("${event.coversheet.alignment.left}")
-    private String alignmentLeft;
-
+List<Paragraph> buildInstructionParagraphs(List<SpecialInstructionsEntity> instructions, Font font, PdfWriter writer) {
+    
+    int count = 1;
+    boolean firstPage = true;
+    
+    for (SpecialInstructionsEntity instruction : instructions) {
+        
+        String createdOn = instruction.getCreatedOn() != null ? dateFormatter(instruction.getCreatedOn()) : "";
+        String createdBy = instruction.getCreatedByUser() != null ? instruction.getCreatedByUser() : "";
+        
+        String comment = instruction.getComment() != null ? cleanHtml(instruction.getComment()) : "";
+        comment = truncateToDbLimit(comment, 32000);
+        
+        String header = String.format("[%s] [%s]\n%d)", createdOn, createdBy, count);
+        
+        String[] paragraphsInComment = comment.split("\n\r|\n\r|\n|<br>|<br/>|</p>\\s*<p>");
+        
+        boolean isFirstParagraph = true;
+        
+        for (String paragraphText : paragraphsInComment) {
+            paragraphText = paragraphText.trim();
+            
+            if (!paragraphText.isEmpty()) {
+                String fullText;
+                
+                if (isFirstParagraph) {
+                    fullText = header + paragraphText;
+                    isFirstParagraph = false;
+                } else {
+                    fullText = paragraphText;
+                }
+                
+                // Split text dynamically based on current page
+                String remainingText = fullText;
+                
+                while (!remainingText.isEmpty()) {
+                    // Determine chunk size based on current page
+                    int chunkSize = firstPage ? 800 : 1200;
+                    
+                    // Get the next chunk
+                    String chunk;
+                    if (remainingText.length() <= chunkSize) {
+                        chunk = remainingText;
+                        remainingText = "";
+                    } else {
+                        // Find a good break point (word boundary)
+                        int breakPoint = remainingText.lastIndexOf(' ', chunkSize);
+                        if (breakPoint == -1) {
+                            breakPoint = chunkSize; // Force break if no space found
+                        }
+                        chunk = remainingText.substring(0, breakPoint);
+                        remainingText = remainingText.substring(breakPoint).trim();
+                    }
+                    
+                    Paragraph p = new Paragraph(chunk, font);
+                    p.setSpacingAfter(8f);
+                    p.setIndentationLeft(36);
+                    p.setKeepTogether(true);
+                    p.setAlignment(Element.ALIGN_JUSTIFIED);
+                    
+                    list.add(p);
+                    
+                    // Check if we've moved past the first page after adding content
+                    if (firstPage && writer.getPageNumber() > 1) {
+                        firstPage = false;
+                    }
+                }
+            }
+        }
+        
+        count++;
+    }
+    
+    return list;
+}
     @Value("${event.coversheet.alignment.right}")
     private String alignmentRight;
 
