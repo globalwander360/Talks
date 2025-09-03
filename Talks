@@ -1,79 +1,367 @@
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+package com.bnpparibas.dpw.helpers;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-import java.util.Collections;
+import com.bnpparibas.dpw.entity.dpw.SpecialInstructionsEntity;
+import com.bnpparibas.dpw.repository.SpecialInstructionsRepository;
+import com.lowagie.text.Element;
+import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfPageEventHelper;
+import com.lowagie.text.DocumentException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import com.bnpparibas.dpw.controller.model.RequestEvent;
+import com.lowagie.text.Chunk;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfWriter;
 
-class AuditControllerTest {
+@Component
+public class DpwEventPdfExporter {
 
-    @Mock
-    private AuditService auditService;
+    private static final String MFR = "MFR: ";
+    private static final String UMFR = "UMFR: ";
+    private static final String EVENTID = "Conserto Event ID: ";
+    private static final String CUSTOMER_NAME = "Customer Name: ";
+    private static final String CUSTOMER_ID = "Customer ID: ";
+    private static final String PRODUCT_GROUP = "Product Group: ";
+    private static final String PRODUCT = "Product: ";
+    private static final String EVENT = "Event: ";
+    private static final String EVENT_PRIORITY = "Event Priority: ";
+    private static final String EVENT_INITIATION = "Event Initiation: ";
+    private static final String SPECIAL_INSTRUCTION = "Special Instruction: ";
 
-    @Mock
-    private AuditExportService auditExportService;
+    @Value("${event.coversheet.spacing.betweenproperties}")
+    private String betweenProperties;
 
-    @InjectMocks
-    private AuditController auditController; // Jisme aapka exportAudit method hai
+    @Value("${event.coversheet.spacing.afterheader}")
+    private String afterHeader;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Value("${event.coversheet.spacing.beforefooter}")
+    private String beforeFooter;
+
+    @Value("${event.coversheet.spacing.betweenparagraph}")
+    private String betweenParagraph;
+
+    @Value("${event.coversheet.font.keysize}")
+    private String keySize;
+
+    @Value("${event.coversheet.font.valuesize}")
+    private String valueSize;
+
+    @Value("${event.coversheet.font.keyfont}")
+    private String keyFontProp;
+
+    @Value("${event.coversheet.font.valuefont}")
+    private String valueFontProp;
+
+    @Value("${event.coversheet.alignment.left}")
+    private String alignmentLeft;
+
+    @Value("${event.coversheet.alignment.right}")
+    private String alignmentRight;
+
+    @Value("${event.coversheet.alignment.bottom}")
+    private String alignmentBottom;
+
+    @Autowired
+    private SpecialInstructionsRepository specialInstructionsRepository;
+
+    private class HeaderFooter extends PdfPageEventHelper {
+        private RequestEvent requestEvent;
+        private Font keyFont;
+        private Font valueFont;
+
+        public HeaderFooter(RequestEvent requestEvent, Font keyFont, Font valueFont) {
+            this.requestEvent = requestEvent;
+            this.keyFont = keyFont;
+            this.valueFont = valueFont;
+        }
+
+        @Override
+        public void onEndPage(PdfWriter writer, Document document) {
+            PdfContentByte cb = writer.getDirectContent();
+            float rightX = document.right();
+            float headerY = document.getPageSize().getHeight() - 30;
+            float lineSpacing = 22f;
+
+            drawRightAlignedMixedText(cb, UMFR, maskText(getOrDefault(requestEvent.getUmfr()), 38), keyFont, valueFont, rightX, headerY - lineSpacing);
+            drawRightAlignedMixedText(cb, EVENTID, maskText(getOrDefault(requestEvent.getId()), 38), keyFont, valueFont, rightX, headerY - 2 * lineSpacing);
+            drawRightAlignedMixedText(cb, CUSTOMER_ID, maskText(getOrDefault(requestEvent.getCustMstNo()), 30), keyFont, valueFont, rightX, headerY - 3 * lineSpacing);
+            drawRightAlignedMixedText(cb, CUSTOMER_NAME, maskText(getOrDefault(requestEvent.getCusName()), 30), keyFont, valueFont, rightX, headerY - 4 * lineSpacing);
+        }
+
+        private void drawRightAlignedMixedText(PdfContentByte cb, String label, String value, Font keyFont, Font valueFont, float rightX, float y) {
+            try {
+                float labelWidth = keyFont.getBaseFont().getWidthPoint(label, keyFont.getSize());
+                float valueWidth = valueFont.getBaseFont().getWidthPoint(value, valueFont.getSize());
+                float totalWidth = labelWidth + valueWidth;
+                float startX = rightX - totalWidth;
+
+                cb.beginText();
+                cb.setFontAndSize(keyFont.getBaseFont(), keyFont.getSize());
+                cb.setTextMatrix(startX, y);
+                cb.showText(label);
+                cb.endText();
+
+                cb.beginText();
+                cb.setFontAndSize(valueFont.getBaseFont(), valueFont.getSize());
+                cb.setTextMatrix(startX + labelWidth, y);
+                cb.showText(value);
+                cb.endText();
+            } catch (Exception e) {
+                // Handle font exceptions gracefully
+                System.err.println("Error drawing text: " + e.getMessage());
+            }
+        }
+
+        private String getOrDefault(String str) {
+            return (str == null || str.trim().isEmpty()) ? "-" : str;
+        }
+
+        private String maskText(String text, int maxLength) {
+            if (text.length() > maxLength) {
+                return text.substring(0, maxLength - 3) + "...";
+            }
+            return text;
+        }
     }
 
-    @Test
-    void exportAudit_shouldReturnExcelFile_whenSuccessful() {
-        // Arrange
-        AuditDetailListsPage mockPage = new AuditDetailListsPage();
-        AuditExportDto dto = new AuditExportDto();
-        mockPage.setAuditList(Collections.singletonList(dto));
+    public byte[] export(RequestEvent requestEvent) throws DocumentException, IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4);
+        document.setMargins(36, 36, 140, 35);
 
-        when(auditService.getAuditDetails(
-                anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), anyInt(), anyString(),
-                any(), anyString(), any(Export.class))
-        ).thenReturn(mockPage);
+        PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
 
-        byte[] excelBytes = "testExcelContent".getBytes();
-        when(auditExportService.generateExcel(anyList())).thenReturn(excelBytes);
+        Font keyFont = FontFactory.getFont(keyFontProp);
+        keyFont.setSize(Float.parseFloat(keySize));
+        Font valueFont = FontFactory.getFont(valueFontProp);
+        valueFont.setSize(Float.parseFloat(valueSize));
 
-        // Act
-        ResponseEntity<byte[]> response = auditController.exportAudit(
-                "BR01", "IN", "BNPPUID", "EVT01",
-                "en", 0, 10, "date", SortDirection.ASC, "Asia/Kolkata", new Export()
-        );
+        writer.setPageEvent(new HeaderFooter(requestEvent, keyFont, valueFont));
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertArrayEquals(excelBytes, response.getBody());
-        assertEquals("application/octet-stream", response.getHeaders().getContentType().toString());
-        assertTrue(response.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION).contains("export.xlsx"));
+        document.open();
+
+        // Product Group
+        Paragraph e5 = new Paragraph();
+        Chunk productGroupKey = new Chunk(PRODUCT_GROUP, keyFont);
+        Chunk productGroupValue = new Chunk(Objects.toString(requestEvent.getProductGroupName(), ""), valueFont);
+        e5.add(productGroupKey);
+        e5.add(productGroupValue);
+        e5.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
+        e5.setAlignment(Integer.parseInt(alignmentLeft));
+        document.add(e5);
+
+        // Product
+        Paragraph e6 = new Paragraph();
+        Chunk productKey = new Chunk(PRODUCT, keyFont);
+        Chunk productValue = new Chunk(Objects.toString(requestEvent.getProductName(), ""), valueFont);
+        e6.add(productKey);
+        e6.add(productValue);
+        e6.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
+        e6.setAlignment(Integer.parseInt(alignmentLeft));
+        document.add(e6);
+
+        // Event
+        Paragraph e7 = new Paragraph();
+        Chunk eventKey = new Chunk(EVENT, keyFont);
+        Chunk eventValue = new Chunk(Objects.toString(requestEvent.getEventName(), ""), valueFont);
+        e7.add(eventKey);
+        e7.add(eventValue);
+        e7.setAlignment(Integer.parseInt(alignmentLeft));
+        e7.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
+        document.add(e7);
+
+        // Event Priority
+        Paragraph e8 = new Paragraph();
+        Chunk eventPriorityKey = new Chunk(EVENT_PRIORITY, keyFont);
+        Chunk eventPriorityValue = new Chunk(Objects.toString(requestEvent.getEventPriorityName(), ""), valueFont);
+        e8.add(eventPriorityKey);
+        e8.add(eventPriorityValue);
+        e8.setAlignment(Integer.parseInt(alignmentLeft));
+        e8.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
+        document.add(e8);
+
+        // Event Initiation
+        String initiationDate = dateFormatter(requestEvent.getSystemCreationDate());
+        Paragraph e9 = new Paragraph();
+        Chunk eventInitiationKey = new Chunk(EVENT_INITIATION, keyFont);
+        Chunk eventInitiationValue = new Chunk(initiationDate != null ? initiationDate + " (UTC)" : "", valueFont);
+        e9.add(eventInitiationKey);
+        e9.add(eventInitiationValue);
+        e9.setAlignment(Integer.parseInt(alignmentLeft));
+        e9.setSpacingAfter(Float.valueOf(betweenProperties).floatValue());
+        document.add(e9);
+
+        // Special Instructions
+        List<SpecialInstructionsEntity> instructions = specialInstructionsRepository.findByEventIdOrderByCreatedOnDesc(requestEvent.getId());
+        if (instructions != null && !instructions.isEmpty()) {
+            Paragraph headerParagraph = new Paragraph(SPECIAL_INSTRUCTION, valueFont);
+            headerParagraph.setAlignment(Element.ALIGN_CENTER);
+            headerParagraph.setSpacingAfter(5f);
+            document.add(headerParagraph);
+
+            createTwoColumnInstructions(document, writer, instructions, keyFont);
+        }
+
+        document.close();
+        return byteArrayOutputStream.toByteArray();
     }
 
-    @Test
-    void exportAudit_shouldReturnInternalServerError_whenExceptionOccurs() {
-        // Arrange
-        when(auditService.getAuditDetails(
-                anyString(), anyString(), anyString(), anyString(),
-                anyString(), anyInt(), anyInt(), anyString(),
-                any(), anyString(), any(Export.class))
-        ).thenThrow(new RuntimeException("DB Error"));
+    private void createTwoColumnInstructions(Document document, PdfWriter writer, List<SpecialInstructionsEntity> instructions, Font font) {
+        float pageWidth = document.getPageSize().getWidth();
+        float pageHeight = document.getPageSize().getHeight();
+        float left = document.leftMargin();
+        float right = document.rightMargin();
+        float top = document.topMargin();
+        float COLUMN_GAP = 20;
+        float bottom = document.bottomMargin();
 
-        // Act
-        ResponseEntity<byte[]> response = auditController.exportAudit(
-                "BR01", "IN", "BNPPUID", "EVT01",
-                "en", 0, 10, "date", SortDirection.ASC, "Asia/Kolkata", new Export()
-        );
+        float usableWidth = pageWidth - left - right;
+        float columnWidth = (usableWidth - COLUMN_GAP) / 2;
 
-        // Assert
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNull(response.getBody());
+        float yStart = pageHeight - top - 100;
+        
+        try {
+            float currentY = writer.getVerticalPosition(true);
+            if (currentY > 0 && currentY < yStart) {
+                yStart = currentY - 20;
+            }
+        } catch (Exception e) {
+            // Use default yStart if unable to get current position
+        }
+
+        float yEnd = bottom;
+
+        List<Paragraph> paragraphs = buildInstructionParagraphs(instructions, font, writer);
+        int instructionIndex = 0;
+
+        while (instructionIndex < paragraphs.size()) {
+            ColumnText leftColumn = new ColumnText(writer.getDirectContent());
+            ColumnText rightColumn = new ColumnText(writer.getDirectContent());
+
+            leftColumn.setSimpleColumn(left, yEnd, left + columnWidth, yStart);
+            rightColumn.setSimpleColumn(left + columnWidth + COLUMN_GAP, yEnd, left + 2 * columnWidth + COLUMN_GAP, yStart);
+
+            instructionIndex = fillColumn(leftColumn, paragraphs, instructionIndex);
+
+            if (instructionIndex < paragraphs.size()) {
+                instructionIndex = fillColumn(rightColumn, paragraphs, instructionIndex);
+            }
+
+            if (instructionIndex < paragraphs.size()) {
+                document.newPage();
+                yStart = pageHeight - top;
+            }
+        }
+    }
+
+    private int fillColumn(ColumnText column, List<Paragraph> paragraphs, int startIndex) {
+        column.setText(null);
+        int currentIndex = startIndex;
+
+        while (currentIndex < paragraphs.size()) {
+            ColumnText testColumn = ColumnText.duplicate(column);
+            testColumn.addElement(paragraphs.get(currentIndex));
+
+            int status = testColumn.go(true);
+            if (ColumnText.hasMoreText(status)) {
+                break;
+            } else {
+                column.addElement(paragraphs.get(currentIndex));
+                currentIndex++;
+            }
+        }
+
+        column.go();
+        return currentIndex;
+    }
+
+    private List<Paragraph> buildInstructionParagraphs(List<SpecialInstructionsEntity> instructions, Font font, PdfWriter writer) {
+        List<Paragraph> list = new ArrayList<>();
+        int count = 1;
+
+        for (SpecialInstructionsEntity instruction : instructions) {
+            String createdOn = instruction.getCreatedOn() != null ? dateFormatter(instruction.getCreatedOn()) : "";
+            String createdBy = instruction.getCreatedByUser() != null ? instruction.getCreatedByUser() : "";
+            String comment = instruction.getComment() != null ? cleanHtml(instruction.getComment()) : "";
+
+            String line = String.format("[%s] [%s]\n%d) %s", createdOn, createdBy, count, comment);
+
+            List<String> commentChunks = splitTextIntoChunks(line, 800); // Reduced chunk size for better handling
+
+            for (String chunk : commentChunks) {
+                Paragraph p = new Paragraph(chunk, font);
+                p.setSpacingAfter(15f);
+                p.setIndentationLeft(5f);
+                p.setKeepTogether(true);
+                list.add(p);
+            }
+
+            count++;
+        }
+
+        return list;
+    }
+
+    private List<String> splitTextIntoChunks(String text, int maxLength) {
+        List<String> chunks = new ArrayList<>();
+        
+        if (text == null || text.isEmpty()) {
+            return chunks;
+        }
+        
+        int length = text.length();
+        
+        for (int i = 0; i < length; i += maxLength) {
+            int endIndex = Math.min(length, i + maxLength);
+            String chunk = text.substring(i, endIndex);
+            
+            // Try to break at word boundaries if possible
+            if (endIndex < length && !Character.isWhitespace(text.charAt(endIndex))) {
+                int lastSpace = chunk.lastIndexOf(' ');
+                if (lastSpace > 0 && lastSpace > chunk.length() - 50) { // Only break at space if it's reasonably close to end
+                    chunk = chunk.substring(0, lastSpace);
+                    i = i + lastSpace + 1 - maxLength; // Adjust next starting position
+                }
+            }
+            
+            chunks.add(chunk);
+        }
+        
+        return chunks;
+    }
+
+    private String cleanHtml(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("<[^>]*>", "")
+                   .replaceAll("&nbsp;", " ")
+                   .replaceAll("&amp;", "&")
+                   .replaceAll("&lt;", "<")
+                   .replaceAll("&gt;", ">")
+                   .replaceAll("&quot;", "\"")
+                   .trim();
+    }
+
+    private String dateFormatter(LocalDateTime dt) {
+        if (dt == null) {
+            return "";
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d'th' MMMM yyyy HH:mm");
+        return dt.format(formatter);
     }
 }
