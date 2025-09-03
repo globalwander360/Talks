@@ -226,18 +226,19 @@ public class DpwEventPdfExporter {
         float left = document.leftMargin();
         float right = document.rightMargin();
         float top = document.topMargin();
-        float COLUMN_GAP = 20;
-        float bottom = document.bottomMargin();
+        float COLUMN_GAP = 15;
+        float bottom = document.bottomMargin() + 20; // Reduce bottom margin for more space
 
         float usableWidth = pageWidth - left - right;
         float columnWidth = (usableWidth - COLUMN_GAP) / 2;
 
-        float yStart = pageHeight - top - 100;
+        // Start from current position or calculate from page top
+        float yStart = pageHeight - top - 80; // Reduced from 100 to get more space
         
         try {
             float currentY = writer.getVerticalPosition(true);
             if (currentY > 0 && currentY < yStart) {
-                yStart = currentY - 20;
+                yStart = currentY - 10; // Reduced spacing
             }
         } catch (Exception e) {
             // Use default yStart if unable to get current position
@@ -255,6 +256,10 @@ public class DpwEventPdfExporter {
             leftColumn.setSimpleColumn(left, yEnd, left + columnWidth, yStart);
             rightColumn.setSimpleColumn(left + columnWidth + COLUMN_GAP, yEnd, left + 2 * columnWidth + COLUMN_GAP, yStart);
 
+            // Set leading (line spacing) for better text fitting
+            leftColumn.setLeading(font.getSize() * 1.2f);
+            rightColumn.setLeading(font.getSize() * 1.2f);
+
             instructionIndex = fillColumn(leftColumn, paragraphs, instructionIndex);
 
             if (instructionIndex < paragraphs.size()) {
@@ -263,7 +268,7 @@ public class DpwEventPdfExporter {
 
             if (instructionIndex < paragraphs.size()) {
                 document.newPage();
-                yStart = pageHeight - top;
+                yStart = pageHeight - top - 40; // Less top margin on new pages
             }
         }
     }
@@ -298,22 +303,67 @@ public class DpwEventPdfExporter {
             String createdBy = instruction.getCreatedByUser() != null ? instruction.getCreatedByUser() : "";
             String comment = instruction.getComment() != null ? cleanHtml(instruction.getComment()) : "";
 
-            String line = String.format("[%s] [%s]\n%d) %s", createdOn, createdBy, count, comment);
+            // Truncate comment if it exceeds database limit (leave some buffer for other fields)
+            comment = truncateToDbLimit(comment, 32500); // Leave 100 chars buffer for other fields
 
-            List<String> commentChunks = splitTextIntoChunks(line, 800); // Reduced chunk size for better handling
+            String header = String.format("[%s] [%s]\n%d) ", createdOn, createdBy, count);
 
-            for (String chunk : commentChunks) {
-                Paragraph p = new Paragraph(chunk, font);
-                p.setSpacingAfter(15f);
-                p.setIndentationLeft(5f);
-                p.setKeepTogether(true);
-                list.add(p);
+            // Handle paragraph breaks in the comment
+            String[] paragraphsInComment = comment.split("\\n|\\r\\n|\\r|<br>|<br/>|</p>\\s*<p>");
+
+            boolean isFirstParagraph = true;
+            for (String paragraphText : paragraphsInComment) {
+                paragraphText = paragraphText.trim();
+                if (!paragraphText.isEmpty()) {
+                    String fullText;
+                    if (isFirstParagraph) {
+                        fullText = header + paragraphText;
+                        isFirstParagraph = false;
+                    } else {
+                        fullText = "   " + paragraphText; // Indent continuation paragraphs
+                    }
+
+                    // Split long paragraphs into chunks that fit well in columns
+                    List<String> chunks = splitTextIntoChunks(fullText, 600); // Smaller chunks for better column fitting
+
+                    for (String chunk : chunks) {
+                        Paragraph p = new Paragraph(chunk, font);
+                        p.setSpacingAfter(8f); // Reduced spacing
+                        p.setIndentationLeft(3f); // Reduced indentation
+                        p.setKeepTogether(true);
+                        p.setAlignment(Element.ALIGN_JUSTIFIED); // Justify text for better appearance
+                        list.add(p);
+                    }
+                }
             }
 
             count++;
         }
 
         return list;
+    }
+
+    /**
+     * Truncates text to fit within database character limit
+     */
+    private String truncateToDbLimit(String text, int maxLength) {
+        if (text == null) {
+            return "";
+        }
+        
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        
+        // Try to truncate at a word boundary
+        String truncated = text.substring(0, maxLength - 3);
+        int lastSpace = truncated.lastIndexOf(' ');
+        
+        if (lastSpace > maxLength - 100) { // Only use word boundary if it's close to the limit
+            truncated = truncated.substring(0, lastSpace);
+        }
+        
+        return truncated + "...";
     }
 
     private List<String> splitTextIntoChunks(String text, int maxLength) {
@@ -329,16 +379,20 @@ public class DpwEventPdfExporter {
             int endIndex = Math.min(length, i + maxLength);
             String chunk = text.substring(i, endIndex);
             
-            // Try to break at word boundaries if possible
+            // Try to break at word boundaries if possible and we're not at the end
             if (endIndex < length && !Character.isWhitespace(text.charAt(endIndex))) {
                 int lastSpace = chunk.lastIndexOf(' ');
-                if (lastSpace > 0 && lastSpace > chunk.length() - 50) { // Only break at space if it's reasonably close to end
-                    chunk = chunk.substring(0, lastSpace);
-                    i = i + lastSpace + 1 - maxLength; // Adjust next starting position
+                int lastNewline = Math.max(chunk.lastIndexOf('\n'), chunk.lastIndexOf('\r'));
+                int breakPoint = Math.max(lastSpace, lastNewline);
+                
+                // Only break at boundary if it's reasonably close to end (within 10% of chunk size)
+                if (breakPoint > 0 && breakPoint > (chunk.length() * 0.9)) {
+                    chunk = chunk.substring(0, breakPoint);
+                    i = i + breakPoint + 1 - maxLength; // Adjust next starting position
                 }
             }
             
-            chunks.add(chunk);
+            chunks.add(chunk.trim()); // Trim whitespace
         }
         
         return chunks;
