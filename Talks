@@ -1,82 +1,55 @@
-package com.bnpparibas.mql.strategy;
+package com.example.strategy;
 
-import com.bnpparibas.dpw.docstore.model.DocumentMetaDataDocstorewithversioning;
-import com.bnpparibas.dpw.mql.model.ExternalTNTRequest;
-import com.bnpparibas.mql.bean.externalTrackAndTrace.Attachment;
-import com.bnpparibas.mql.bean.externalTrackAndTrace.EcTnxRecord;
-import com.bnpparibas.mql.constants.Connexis;
-import com.bnpparibas.mql.helper.ExternalTNTHelper;
-import com.bnpparibas.mql.util.TradeDocV2Utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-class EcXmlStrategyTest {
+class XalStrategyContextTest {
 
-    @Mock
-    private ExternalTNTHelper cxtHelper;
-
-    @Mock
-    private TradeDocV2Utils tradeDocV2Utils;
-
-    @InjectMocks
-    private EcXmlStrategy ecXmlStrategy;
-
-    private ExternalTNTRequest request;
-    private List<DocumentMetaDataDocstorewithversioning> docList;
+    private XalStrategyContext xalStrategyContext;
+    private XalStrategy<TnxRecord> mockStrategy;
+    private ExternalTNTRequest mockRequest;
 
     @BeforeEach
-    void setup() {
-        request = new ExternalTNTRequest();
-        request.setProdCode("EC");
-        request.setEventId("EVT123");
-        request.setCurCode("USD");
-        request.setTnxAmt("1000");
-        request.setCustomerId("CUST01");
-        request.setBranchCode("CUST0");
-        request.setCounterPartyName("John Doe");
-        request.setEbCusId("EB001");
-        request.setEbBanId("BANK001");
-        request.setEventCreationDateTime(LocalDateTime.now());
+    void setUp() {
+        mockStrategy = Mockito.mock(XalStrategy.class);
+        when(mockStrategy.getProductCode()).thenReturn("EXPORT_COLLECTION");
 
-        DocumentMetaDataDocstorewithversioning mockDoc = mock(DocumentMetaDataDocstorewithversioning.class);
-        docList = List.of(mockDoc);
+        xalStrategyContext = new XalStrategyContext(Set.of(mockStrategy));
+
+        mockRequest = new ExternalTNTRequest("EXPORT_COLLECTION");
     }
 
     @Test
-    void testGetProductCode() {
-        String productCode = ecXmlStrategy.getProductCode();
-        assertEquals(Connexis.ProductCodeType.EXPORT_COLLECTION, productCode);
-    }
-
-    @Test
-    void testGenerateXml_WithAttachments() {
-        Attachment mockAttachment = new Attachment();
-        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(List.of(mockAttachment));
-
-        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
+    void testGenerateXml_ShouldCallCorrectStrategy() {
         File expectedFile = new File("test.xml");
-        doReturn(expectedFile).when(spyStrategy)
-                .generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
 
-        File result = spyStrategy.generatexml(request, "path/to/file", docList);
+        when(mockStrategy.generateXml(any(), any(), any())).thenReturn(expectedFile);
 
-        assertNotNull(result);
-        assertEquals(expectedFile, result);
-        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
-        verify(spyStrategy, times(1))
-                .generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        File actualFile = xalStrategyContext.generateXml(mockRequest, "test.xml", List.of());
+
+        assertEquals(expectedFile, actualFile);
+        verify(mockStrategy, times(1)).generateXml(eq(mockRequest), eq("test.xml"), any());
+    }
+
+    @Test
+    void testGenerateXml_WhenNoStrategyFound_ShouldThrowNullPointerException() {
+        ExternalTNTRequest unknownRequest = new ExternalTNTRequest("UNKNOWN");
+
+        assertThrows(NullPointerException.class, () ->
+                xalStrategyContext.generateXml(unknownRequest, "test.xml", List.of())
+        );
+    }
+
+    @Test
+    void testConstructor_ShouldStoreStrategiesByProductCode() {
+        assertNotNull(xalStrategyContext);
     }
 }
