@@ -1,4 +1,108 @@
-Name:- Arun Negi
-Email:- negibharat4078444@gmail.com 
-Phone:- 8433063920
-Summary:- I am seeking your referral for an opportunity at BNP Paribas. I am a B.Tech CSE student with expertise in C, C++, Python, Java, JavaScript, SQL, MERN stack, Machine Learning, and Deep Learning. My achievements include being in the top 3% on LeetCode (Knight, max rating 2020), securing global ranks 710 & 725 in LeetCode contests, Specialist on Codeforces, top 10 team at Graphethon 2.0 (national hackathon), and Smart India Hackathon 2024 semifinalist. I have built impactful projects like an AI-powered image transformation platform, an Attendance Monitoring System, and an 8085 Simulator, along with an IEEE-published research paper.
+package com.bnpparibas.mql.strategy;
+
+import com.bnpparibas.dpw.docstore.model.DocumentMetaDataDocstorewithversioning;
+import com.bnpparibas.dpw.mql.model.ExternalTNTRequest;
+import com.bnpparibas.mql.bean.externalTrackAndTrace.Attachment;
+import com.bnpparibas.mql.bean.externalTrackAndTrace.EcTnxRecord;
+import com.bnpparibas.mql.constants.Connexis;
+import com.bnpparibas.mql.helper.ExternalTNTHelper;
+import com.bnpparibas.mql.util.TradeDocV2Utils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class EcXmlStrategyTest {
+
+    @Mock
+    private ExternalTNTHelper cxtHelper;
+
+    @Mock
+    private TradeDocV2Utils tradeDocV2Utils;
+
+    @InjectMocks
+    private EcXmlStrategy ecXmlStrategy;
+
+    private ExternalTNTRequest request;
+    private List<DocumentMetaDataDocstorewithversioning> docList;
+
+    @BeforeEach
+    void setup() {
+        request = new ExternalTNTRequest();
+        request.setProdCode("EC");
+        request.setEventId("EVT123");
+        request.setCurCode("USD");
+        request.setTnxAmt("1000");
+        request.setCustomerId("CUST01");
+        request.setBranchCode("CUST0");
+        request.setCounterPartyName("John Doe");
+        request.setEbCusId("EB001");
+        request.setEbBanId("BANK001");
+        request.setEventCreationDateTime(LocalDateTime.now());
+        docList = Collections.emptyList();
+    }
+
+    @Test
+    void testGetProductCode() {
+        String productCode = ecXmlStrategy.getProductCode();
+        assertEquals(Connexis.ProductCodeType.EXPORT_COLLECTION, productCode);
+    }
+
+    @Test
+    void testGenerateXml_WithAttachments() {
+        Attachment mockAttachment = new Attachment();
+        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(List.of(mockAttachment));
+        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
+        File expectedFile = new File("test.xml");
+        doReturn(expectedFile).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        File result = spyStrategy.generatexml(request, "path/to/file", docList);
+        assertNotNull(result);
+        assertEquals(expectedFile, result);
+        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
+        verify(spyStrategy, times(1)).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+    }
+
+    @Test
+    void testGenerateXml_WhenConnexisRequestRefIdBlank() {
+        request.setConnexisRequestRefId("");
+        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
+        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
+        doReturn(new File("test.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        File result = spyStrategy.generatexml(request, "path", docList);
+        assertNotNull(result);
+        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
+    }
+
+    @Test
+    void testGenerateXml_WithNullCustomerAndBranch() {
+        request.setCustomerId(null);
+        request.setBranchCode(null);
+        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
+        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
+        doReturn(new File("output.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        File result = spyStrategy.generatexml(request, "filePath", docList);
+        assertNotNull(result);
+        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
+    }
+
+    @Test
+    void testGenerateXml_WhenDocumentAttachmentsEmpty() {
+        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
+        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
+        doReturn(new File("file.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        File result = spyStrategy.generatexml(request, "xmlPath", docList);
+        assertNotNull(result);
+    }
+}
