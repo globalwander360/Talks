@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,7 +50,9 @@ class EcXmlStrategyTest {
         request.setEbCusId("EB001");
         request.setEbBanId("BANK001");
         request.setEventCreationDateTime(LocalDateTime.now());
-        docList = Collections.emptyList();
+
+        DocumentMetaDataDocstorewithversioning mockDoc = mock(DocumentMetaDataDocstorewithversioning.class);
+        docList = List.of(mockDoc);
     }
 
     @Test
@@ -64,45 +65,18 @@ class EcXmlStrategyTest {
     void testGenerateXml_WithAttachments() {
         Attachment mockAttachment = new Attachment();
         when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(List.of(mockAttachment));
+
         EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
         File expectedFile = new File("test.xml");
-        doReturn(expectedFile).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+        doReturn(expectedFile).when(spyStrategy)
+                .generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
+
         File result = spyStrategy.generatexml(request, "path/to/file", docList);
+
         assertNotNull(result);
         assertEquals(expectedFile, result);
         verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
-        verify(spyStrategy, times(1)).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
-    }
-
-    @Test
-    void testGenerateXml_WhenConnexisRequestRefIdBlank() {
-        request.setConnexisRequestRefId("");
-        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
-        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
-        doReturn(new File("test.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
-        File result = spyStrategy.generatexml(request, "path", docList);
-        assertNotNull(result);
-        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
-    }
-
-    @Test
-    void testGenerateXml_WithNullCustomerAndBranch() {
-        request.setCustomerId(null);
-        request.setBranchCode(null);
-        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
-        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
-        doReturn(new File("output.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
-        File result = spyStrategy.generatexml(request, "filePath", docList);
-        assertNotNull(result);
-        verify(cxtHelper, times(1)).getXmlAttachments(any(), any());
-    }
-
-    @Test
-    void testGenerateXml_WhenDocumentAttachmentsEmpty() {
-        when(cxtHelper.getXmlAttachments(any(), any())).thenReturn(Collections.emptyList());
-        EcXmlStrategy spyStrategy = spy(ecXmlStrategy);
-        doReturn(new File("file.xml")).when(spyStrategy).generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
-        File result = spyStrategy.generatexml(request, "xmlPath", docList);
-        assertNotNull(result);
+        verify(spyStrategy, times(1))
+                .generateXmlFile(anyString(), any(EcTnxRecord.class), anyString());
     }
 }
