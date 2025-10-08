@@ -1,9 +1,19 @@
-Hi Everyone,
+@Test
+void testGetFetchDocToBeSentToCXT_Success() {
+    String boppuid = "BOP123";
+    when(mockRequest.getEventId()).thenReturn("EVT001");
 
-The changes mentioned in IGS-4739 have been implemented.
-In IGS-4024, a new button has been added and user access has been provided.
-In IGS-4023, the document handling for XML generation has been managed on the backend.
+    List<DocumentMetaDataDocstoreWithVersioning> mockResponse = List.of(
+            new DocumentMetaDataDocstoreWithVersioning(),
+            new DocumentMetaDataDocstoreWithVersioning()
+    );
 
-The requirements for these JIRAs have already been implemented.
+    when(documentApi.getDocumentMetaDataByReqOrEventId("EVT001", boppuid, true))
+            .thenReturn(mockResponse);
 
-Thanks.
+    List<DocumentMetaDataDocstoreWithVersioning> result =
+            documentService.getFetchDocToBeSentToCXT(mockRequest, boppuid);
+
+    assertNotNull(result);
+    assertEquals(2, result.size());
+}
