@@ -1,19 +1,32 @@
 @Test
-void testGetFetchDocToBeSentToCXT_Success() {
+void testGetFetchDocToBeSentToCXT_NotFound() {
     String boppuid = "BOP123";
     when(mockRequest.getEventId()).thenReturn("EVT001");
 
-    List<DocumentMetaDataDocstoreWithVersioning> mockResponse = List.of(
-            new DocumentMetaDataDocstoreWithVersioning(),
-            new DocumentMetaDataDocstoreWithVersioning()
-    );
+    HttpStatusCodeException notFoundException = mock(HttpStatusCodeException.class);
+    when(notFoundException.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
 
     when(documentApi.getDocumentMetaDataByReqOrEventId("EVT001", boppuid, true))
-            .thenReturn(mockResponse);
+            .thenThrow(notFoundException);
 
     List<DocumentMetaDataDocstoreWithVersioning> result =
             documentService.getFetchDocToBeSentToCXT(mockRequest, boppuid);
 
-    assertNotNull(result);
-    assertEquals(2, result.size());
+    assertNull(result);
+}
+
+@Test
+void testGetFetchDocToBeSentToCXT_OtherHttpError() {
+    String boppuid = "BOP123";
+    when(mockRequest.getEventId()).thenReturn("EVT001");
+
+    HttpStatusCodeException internalError = mock(HttpStatusCodeException.class);
+    when(internalError.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+    when(internalError.getResponseBodyAsString()).thenReturn("Server Error");
+
+    when(documentApi.getDocumentMetaDataByReqOrEventId("EVT001", boppuid, true))
+            .thenThrow(internalError);
+
+    assertThrows(BatchException.class,
+            () -> documentService.getFetchDocToBeSentToCXT(mockRequest, boppuid));
 }
