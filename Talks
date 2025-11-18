@@ -1,32 +1,26 @@
-@Test
-void testGetFetchDocToBeSentToCXT_NotFound() {
-    String boppuid = "BOP123";
-    when(mockRequest.getEventId()).thenReturn("EVT001");
+[18/11, 5:32 pm] Dhruv Panchal | BNP |: public static String formatAmountSeparatedByCommaByDecimal(String value) {
 
-    HttpStatusCodeException notFoundException = mock(HttpStatusCodeException.class);
-    when(notFoundException.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+    if (value == null || value.trim().isEmpty()) {
+        return null;
+    }
 
-    when(documentApi.getDocumentMetaDataByReqOrEventId("EVT001", boppuid, true))
-            .thenThrow(notFoundException);
+    // Needed ONLY so backend can parse frontend’s input
+    value = value.replace(",", "");
 
-    List<DocumentMetaDataDocstoreWithVersioning> result =
-            documentService.getFetchDocToBeSentToCXT(mockRequest, boppuid);
+    double numberValue = Double.parseDouble(value);
 
-    assertNull(result);
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    symbols.setGroupingSeparator(',');
+    symbols.setDecimalSeparator('.');
+
+    DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
+    return df.format(numberValue);
 }
+[18/11, 5:32 pm] Dhruv Panchal | BNP |: export function formatAmountSeparatedByCommaByDecimal(value: string): string {
+  const numberValue = Number(value);
 
-@Test
-void testGetFetchDocToBeSentToCXT_OtherHttpError() {
-    String boppuid = "BOP123";
-    when(mockRequest.getEventId()).thenReturn("EVT001");
-
-    HttpStatusCodeException internalError = mock(HttpStatusCodeException.class);
-    when(internalError.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
-    when(internalError.getResponseBodyAsString()).thenReturn("Server Error");
-
-    when(documentApi.getDocumentMetaDataByReqOrEventId("EVT001", boppuid, true))
-            .thenThrow(internalError);
-
-    assertThrows(BatchException.class,
-            () -> documentService.getFetchDocToBeSentToCXT(mockRequest, boppuid));
+  return numberValue.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 }
