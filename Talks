@@ -1,26 +1,2 @@
-[18/11, 5:32 pm] Dhruv Panchal | BNP |: public static String formatAmountSeparatedByCommaByDecimal(String value) {
-
-    if (value == null || value.trim().isEmpty()) {
-        return null;
-    }
-
-    // Needed ONLY so backend can parse frontend’s input
-    value = value.replace(",", "");
-
-    double numberValue = Double.parseDouble(value);
-
-    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-    symbols.setGroupingSeparator(',');
-    symbols.setDecimalSeparator('.');
-
-    DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
-    return df.format(numberValue);
-}
-[18/11, 5:32 pm] Dhruv Panchal | BNP |: export function formatAmountSeparatedByCommaByDecimal(value: string): string {
-  const numberValue = Number(value);
-
-  return numberValue.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
+As discussed with Raphael, IGS-5081 is being moved to backlog.
+Some fields still require user validation. Once the user confirms the required details, we will proceed with the next steps.
