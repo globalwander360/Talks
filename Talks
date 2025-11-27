@@ -1,2 +1,53 @@
-As discussed with Raphael, IGS-5081 is being moved to backlog.
-Some fields still require user validation. Once the user confirms the required details, we will proceed with the next steps.
+private void setTransactionPropertyCount(SideNavCountEntity dpwSideNavEntity,
+                                         @Valid TransactionProperty transactionProperty,
+                                         List<String> eventIds,
+                                         String mfr,
+                                         String currentEventId,
+                                         String branchCode,
+                                         String countryCode) {
+
+    // Case 1: MFR present
+    if (StringUtils.isNotBlank(mfr)) {
+
+        Long mfrTransactionPropertyCount =
+                mfrTransactionPropertyRepository.countByBranchCodeAndCountryCodeAndMfr(branchCode, countryCode, mfr);
+        Long safeMfrCount = (mfrTransactionPropertyCount == null) ? 0L : mfrTransactionPropertyCount;
+
+        for (String eventId : eventIds) {
+
+            SideNavCountEntity sideNavEntity =
+                    dpwSideNavCountRepository.findByEventId(eventId);
+
+            Long eventTransactionPropertyCount =
+                    eventTransactionPropertyRepository.countByEventId(eventId);
+            Long safeEventCount = (eventTransactionPropertyCount == null) ? 0L : eventTransactionPropertyCount;
+
+            Long totalCount = safeMfrCount + safeEventCount;
+
+            if (sideNavEntity == null) {
+                sideNavEntity = new SideNavCountEntity();
+                sideNavEntity.setEventId(eventId);
+            }
+
+            sideNavEntity.setTransactionPropertyCount(totalCount);
+            dpwSideNavCountRepository.save(sideNavEntity);
+
+            if (eventId.equalsIgnoreCase(currentEventId)) {
+                // yaha NPE avoid kiya
+                transactionProperty.setPropertyCount(String.valueOf(totalCount));
+            }
+        }
+
+    // Case 2: MFR blank
+    } else {
+
+        Long eventTransactionPropertyCount =
+                eventTransactionPropertyRepository.countByEventId(currentEventId);
+        Long safeEventCount = (eventTransactionPropertyCount == null) ? 0L : eventTransactionPropertyCount;
+
+        dpwSideNavEntity.setTransactionPropertyCount(safeEventCount);
+        dpwSideNavCountRepository.save(dpwSideNavEntity);
+
+        transactionProperty.setPropertyCount(String.valueOf(safeEventCount));
+    }
+}
