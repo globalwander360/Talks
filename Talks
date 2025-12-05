@@ -1,53 +1,11 @@
-private void setTransactionPropertyCount(SideNavCountEntity dpwSideNavEntity,
-                                         @Valid TransactionProperty transactionProperty,
-                                         List<String> eventIds,
-                                         String mfr,
-                                         String currentEventId,
-                                         String branchCode,
-                                         String countryCode) {
-
-    // Case 1: MFR present
-    if (StringUtils.isNotBlank(mfr)) {
-
-        Long mfrTransactionPropertyCount =
-                mfrTransactionPropertyRepository.countByBranchCodeAndCountryCodeAndMfr(branchCode, countryCode, mfr);
-        Long safeMfrCount = (mfrTransactionPropertyCount == null) ? 0L : mfrTransactionPropertyCount;
-
-        for (String eventId : eventIds) {
-
-            SideNavCountEntity sideNavEntity =
-                    dpwSideNavCountRepository.findByEventId(eventId);
-
-            Long eventTransactionPropertyCount =
-                    eventTransactionPropertyRepository.countByEventId(eventId);
-            Long safeEventCount = (eventTransactionPropertyCount == null) ? 0L : eventTransactionPropertyCount;
-
-            Long totalCount = safeMfrCount + safeEventCount;
-
-            if (sideNavEntity == null) {
-                sideNavEntity = new SideNavCountEntity();
-                sideNavEntity.setEventId(eventId);
-            }
-
-            sideNavEntity.setTransactionPropertyCount(totalCount);
-            dpwSideNavCountRepository.save(sideNavEntity);
-
-            if (eventId.equalsIgnoreCase(currentEventId)) {
-                // yaha NPE avoid kiya
-                transactionProperty.setPropertyCount(String.valueOf(totalCount));
-            }
-        }
-
-    // Case 2: MFR blank
-    } else {
-
-        Long eventTransactionPropertyCount =
-                eventTransactionPropertyRepository.countByEventId(currentEventId);
-        Long safeEventCount = (eventTransactionPropertyCount == null) ? 0L : eventTransactionPropertyCount;
-
-        dpwSideNavEntity.setTransactionPropertyCount(safeEventCount);
-        dpwSideNavCountRepository.save(dpwSideNavEntity);
-
-        transactionProperty.setPropertyCount(String.valueOf(safeEventCount));
-    }
-}
+@Query(value = "SELECT * FROM event_entity " +
+               "WHERE branch_code = :branchCode " +
+               "AND country_code = :countryCode " +
+               "AND LOWER(mfr) = LOWER(:mfr) " +
+               "ORDER BY system_creation_date DESC " +
+               "LIMIT 1 OFFSET 1",
+       nativeQuery = true)
+EventEntity findSecondLatestByBranchCodeAndCountryCodeAndMfr(
+        String branchCode,
+        String countryCode,
+        String mfr);
