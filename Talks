@@ -1,11 +1,103 @@
-@Query(value = "SELECT * FROM event_entity " +
-               "WHERE branch_code = :branchCode " +
-               "AND country_code = :countryCode " +
-               "AND LOWER(mfr) = LOWER(:mfr) " +
-               "ORDER BY system_creation_date DESC " +
+Perfect 👍 main tumhe JPQL version + Optional safe version dono bana deta hoon ✅
+
+
+---
+
+✅ 1. JPQL Version (Database independent – BEST PRACTICE)
+
+> Native SQL ke bina, Hibernate handle karega
+
+
+
+@Query("SELECT e FROM EventEntity e " +
+       "WHERE e.branchCode = :branchCode " +
+       "AND e.countryCode = :countryCode " +
+       "AND LOWER(e.mfr) = LOWER(:mfr) " +
+       "ORDER BY e.systemCreationDate DESC")
+List<EventEntity> findLatestEventsByBranchCountryAndMfr(
+        @Param("branchCode") String branchCode,
+        @Param("countryCode") String countryCode,
+        @Param("mfr") String mfr,
+        Pageable pageable
+);
+
+✅ Service Layer se Second Latest kaise nikaaloge
+
+PageRequest pageRequest = PageRequest.of(1, 1);
+List<EventEntity> events =
+        repository.findLatestEventsByBranchCountryAndMfr(
+                branchCode, countryCode, mfr, pageRequest);
+
+EventEntity secondLatestEvent =
+        events.isEmpty() ? null : events.get(0);
+
+🧠 Logic:
+
+PageRequest.of(1,1) →
+
+0 = latest
+
+1 = second latest ✅
+
+
+
+
+---
+
+✅ 2. Native Query + Optional Safe Version
+
+> Agar tum LIMIT/OFFSET hi use karna chahte ho
+
+
+
+@Query(value = "SELECT * FROM DPW_EVENT " +
+               "WHERE BRANCH_CODE = :branchCode " +
+               "AND COUNTRY_CODE = :countryCode " +
+               "AND LOWER(MFR) = LOWER(:mfr) " +
+               "ORDER BY SYSTEM_CREATION_DATE DESC " +
                "LIMIT 1 OFFSET 1",
        nativeQuery = true)
-EventEntity findSecondLatestByBranchCodeAndCountryCodeAndMfr(
+Optional<EventEntity> findSecondLatestByBranchCodeAndCountryCodeAndMfr(
         String branchCode,
         String countryCode,
-        String mfr);
+        String mfr
+);
+
+✅ Safe usage
+
+Optional<EventEntity> eventOpt =
+        repository.findSecondLatestByBranchCodeAndCountryCodeAndMfr(
+                branchCode, countryCode, mfr);
+
+EventEntity event = eventOpt.orElse(null);
+
+Isse NullPointerException nahi aayega ✅
+
+
+---
+
+🏆 Best Recommendation (Production ke liye):
+
+👉 JPQL + Pageable wala version use karo
+kyunki:
+
+DB independent
+
+Clean
+
+Easily extendable
+
+LIMIT/OFFSET ka direct dependency nahi
+
+
+
+---
+
+Agar tum chaho to mai:
+
+Same cheez Specification API se bhi bana deta
+
+Ya phir directly Service + Repository full flow bana deta
+
+
+Bolo kaun sa approach chahiye? ✅
