@@ -1,0 +1,23 @@
+public long getEventAgeBusinessDaysCount(
+        LocalDate startDate,
+        LocalDate endDate,
+        List<LocalDate> holidays) {
+
+    if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+        return 0;
+    }
+
+    Set<LocalDate> holidaySet =
+            holidays == null ? Set.of() : new HashSet<>(holidays);
+
+    return startDate
+            .plusDays(1)
+            .datesUntil(endDate.plusDays(1))
+            .filter(date -> {
+                DayOfWeek day = date.getDayOfWeek();
+                return day != DayOfWeek.SATURDAY
+                        && day != DayOfWeek.SUNDAY
+                        && !holidaySet.contains(date);
+            })
+            .count();
+}
