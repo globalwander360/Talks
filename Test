@@ -1,0 +1,20 @@
+JIRA Title
+
+Increase Unit Test Code Coverage for dpw-docstore Service
+
+Description
+
+The dpw-docstore service currently has low unit test coverage, which increases the chance of regressions and makes future changes harder to validate confidently.
+This task focuses on improving unit test coverage by adding missing test cases for major business flows, including both positive and negative scenarios.
+
+The expected code coverage after completion should be around 70%.
+
+Acceptance Criteria
+
+Missing unit test cases are added for uncovered modules
+
+Critical business logic is covered with success and failure scenarios
+
+All tests pass successfully in local and CI pipeline
+
+No functional changes are introduced as part of testing updates
