@@ -1,1 +1,5 @@
-Hi everyone, as you know we are continuously working on the slowness issue in Qual-1, and we are also actively identifying the affected screens. If you’re facing slowness on any screen, please share the screen name and any details so we can pinpoint the issue and find the root cause faster.
+Update (Qual-1): As per discussion with the testing team and our analysis, major 3 slowness issues are observed:
+1️⃣ Home screen first-time load/reload (Request Queue, Global Queues, Todo List, Reminder Queue) → 10–15 sec
+2️⃣ Navigating back to Home screen from any screen → 12–15 sec
+3️⃣ Search screen slowness → intermittent
+If you face slowness on any other screen, please share the screen name + steps to reproduce.
