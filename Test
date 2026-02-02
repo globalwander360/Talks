@@ -1,5 +1,4 @@
-Update (Qual-1): As per discussion with the testing team and our analysis, major 3 slowness issues are observed:
-1️⃣ Home screen first-time load/reload (Request Queue, Global Queues, Todo List, Reminder Queue) → 10–15 sec
-2️⃣ Navigating back to Home screen from any screen → 12–15 sec
-3️⃣ Search screen slowness → intermittent
-If you face slowness on any other screen, please share the screen name + steps to reproduce.
+keytool -importcert ^
+-alias echonet_bnpparibas ^
+-file "C:\softwares\echonet.bnpparibas.crt" ^
+-keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts"
