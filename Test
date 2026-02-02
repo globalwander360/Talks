@@ -8,3 +8,15 @@ keytool -importcert ^
 keytool -list ^
 -keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts" ^
 -alias echonet_bnpparibas
+
+
+keytool -importcert ^
+-alias artifactory_echonet ^
+-file "C:\softwares\artifactory_echonet.crt" ^
+-keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts"
+
+
+keytool -list ^
+-keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts" ^
+-alias artifactory_echonet
+
