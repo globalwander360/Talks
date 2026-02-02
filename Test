@@ -20,3 +20,8 @@ keytool -list ^
 -keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts" ^
 -alias artifactory_echonet
 
+keytool -delete ^
+-alias echonet_bnpparibas ^
+-keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts"
+
+set MAVEN_OPTS=-Djavax.net.ssl.trustStore=C:\softwares\echonet-truststore.jks -Djavax.net.ssl.trustStorePassword=echonet123
