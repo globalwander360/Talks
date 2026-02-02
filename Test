@@ -2,3 +2,9 @@ keytool -importcert ^
 -alias echonet_bnpparibas ^
 -file "C:\softwares\echonet.bnpparibas.crt" ^
 -keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts"
+
+
+
+keytool -list ^
+-keystore "C:\corretto-17.0 1\corretto-17.0.11\lib\security\cacerts" ^
+-alias echonet_bnpparibas
