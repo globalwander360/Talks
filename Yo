@@ -1,38 +1,8 @@
-@Configuration
-public class ActuatorConfig {
-
-    @Bean
-    public WebMvcEndpointHandlerMapping webEndpointServletHandlerMapping(
-            WebEndpointsSupplier webEndpointsSupplier,
-            ServletEndpointsSupplier servletEndpointsSupplier,
-            ControllerEndpointsSupplier controllerEndpointsSupplier,
-            EndpointMediaTypes endpointMediaTypes,
-            CorsEndpointProperties corsProperties,
-            WebEndpointProperties webEndpointProperties,
-            Environment environment
-    ) {
-
-        List<ExposableEndpoint<?>> allEndpoints = new ArrayList<>();
-
-        Collection<ExposableWebEndpoint> webEndpoints = webEndpointsSupplier.getEndpoints();
-        allEndpoints.addAll(webEndpoints);
-        allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());
-        allEndpoints.addAll(controllerEndpointsSupplier.getEndpoints());
-
-        String basePath = webEndpointProperties.getBasePath();
-        EndpointMapping endpointMapping = new EndpointMapping(basePath);
-
-        boolean shouldRegisterLinksMapping =
-                webEndpointProperties.getDiscovery().isEnabled()
-                        && (basePath != null && !basePath.isEmpty());
-
-        return new WebMvcEndpointHandlerMapping(
-                endpointMapping,
-                webEndpoints,
-                endpointMediaTypes,
-                corsProperties.toCorsConfiguration(),
-                null, // EndpointLinksResolver REMOVED in Spring Boot 3.x
-                shouldRegisterLinksMapping
-        );
-    }
-}
+This version ensures:
+No duplicate dependencies
+No javax dependencies
+No deprecated swagger or springfox
+No unnecessary dependencies already provided by Spring Boot
+Fully compatible with all your microservices using dpw-common
+Clean inheritance from dpw-parent and dpw-bom
+Fully compatible with OTKR, docstore, workflow, and other modules
