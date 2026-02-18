@@ -1,3 +1,463 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.bnpparibas.dpw</groupId>
+        <artifactId>dpw-parent</artifactId>
+        <version>4.0.0-1</version>
+    </parent>
+
+    <artifactId>dpw-workflow</artifactId>
+    <version>6.0.0-4</version>
+    <packaging>war</packaging>
+
+    <name>dpw-workflow</name>
+    <description>DPW Workflow Service</description>
+
+    <properties>
+
+        <java.version>21</java.version>
+
+        <spring.boot.version>3.5.9</spring.boot.version>
+
+        <camunda.version>7.21.0</camunda.version>
+
+        <mapstruct.version>1.6.3</mapstruct.version>
+
+        <lombok.version>1.18.32</lombok.version>
+
+        <hibernate.version>6.6.1.Final</hibernate.version>
+
+        <dpw.common.version>6.0.0-1</dpw.common.version>
+
+        <dpw.security.version>6.0.0-1</dpw.security.version>
+
+        <api.specs.version>6.0.0-4</api.specs.version>
+
+        <oracle.jdbc.version>23.5.0.24.07</oracle.jdbc.version>
+
+        <jacoco.version>0.8.11</jacoco.version>
+
+    </properties>
+
+
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+
+                <groupId>com.bnpparibas.dpw</groupId>
+
+                <artifactId>dpw-BOM</artifactId>
+
+                <version>4.0.0-1</version>
+
+                <type>pom</type>
+
+                <scope>import</scope>
+
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+
+    <dependencies>
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-starter-web</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-starter-validation</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-starter-aop</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.camunda.bpm.springboot</groupId>
+
+            <artifactId>camunda-bpm-spring-boot-starter-webapp</artifactId>
+
+            <version>${camunda.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.hibernate.orm</groupId>
+
+            <artifactId>hibernate-core</artifactId>
+
+            <version>${hibernate.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.hibernate.orm</groupId>
+
+            <artifactId>hibernate-envers</artifactId>
+
+            <version>${hibernate.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>com.oracle.database.jdbc</groupId>
+
+            <artifactId>ojdbc11</artifactId>
+
+            <version>${oracle.jdbc.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>com.h2database</groupId>
+
+            <artifactId>h2</artifactId>
+
+            <scope>runtime</scope>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.liquibase</groupId>
+
+            <artifactId>liquibase-core</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>com.bnpparibas.dpw</groupId>
+
+            <artifactId>dpw-common</artifactId>
+
+            <version>${dpw.common.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>com.bnpparibas.dpw</groupId>
+
+            <artifactId>c-dpw-authorization-lib</artifactId>
+
+            <version>${dpw.security.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>com.bnpparibas.dpw</groupId>
+
+            <artifactId>api-specs</artifactId>
+
+            <version>${api.specs.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springdoc</groupId>
+
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+
+            <version>2.5.0</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.mapstruct</groupId>
+
+            <artifactId>mapstruct</artifactId>
+
+            <version>${mapstruct.version}</version>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.mapstruct</groupId>
+
+            <artifactId>mapstruct-processor</artifactId>
+
+            <version>${mapstruct.version}</version>
+
+            <scope>provided</scope>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.projectlombok</groupId>
+
+            <artifactId>lombok</artifactId>
+
+            <version>${lombok.version}</version>
+
+            <scope>provided</scope>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.ehcache</groupId>
+
+            <artifactId>ehcache</artifactId>
+
+            <classifier>jakarta</classifier>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>jakarta.persistence</groupId>
+
+            <artifactId>jakarta.persistence-api</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>jakarta.servlet</groupId>
+
+            <artifactId>jakarta.servlet-api</artifactId>
+
+            <scope>provided</scope>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>jakarta.validation</groupId>
+
+            <artifactId>jakarta.validation-api</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-configuration-processor</artifactId>
+
+            <optional>true</optional>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.springframework.boot</groupId>
+
+            <artifactId>spring-boot-starter-test</artifactId>
+
+            <scope>test</scope>
+
+        </dependency>
+
+
+        <dependency>
+
+            <groupId>org.camunda.bpm.extension</groupId>
+
+            <artifactId>camunda-bpm-junit5</artifactId>
+
+            <version>1.1.0</version>
+
+            <scope>test</scope>
+
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+
+        <finalName>workflow</finalName>
+
+        <plugins>
+
+            <plugin>
+
+                <groupId>org.apache.maven.plugins</groupId>
+
+                <artifactId>maven-compiler-plugin</artifactId>
+
+                <version>3.11.0</version>
+
+                <configuration>
+
+                    <release>21</release>
+
+                    <annotationProcessorPaths>
+
+                        <path>
+
+                            <groupId>org.projectlombok</groupId>
+
+                            <artifactId>lombok</artifactId>
+
+                            <version>${lombok.version}</version>
+
+                        </path>
+
+                        <path>
+
+                            <groupId>org.mapstruct</groupId>
+
+                            <artifactId>mapstruct-processor</artifactId>
+
+                            <version>${mapstruct.version}</version>
+
+                        </path>
+
+                    </annotationProcessorPaths>
+
+                    <compilerArgs>
+
+                        <arg>-parameters</arg>
+
+                        <arg>-Amapstruct.defaultComponentModel=spring</arg>
+
+                    </compilerArgs>
+
+                </configuration>
+
+            </plugin>
+
+
+            <plugin>
+
+                <groupId>org.springframework.boot</groupId>
+
+                <artifactId>spring-boot-maven-plugin</artifactId>
+
+                <version>${spring.boot.version}</version>
+
+            </plugin>
+
+
+            <plugin>
+
+                <groupId>org.jacoco</groupId>
+
+                <artifactId>jacoco-maven-plugin</artifactId>
+
+                <version>${jacoco.version}</version>
+
+                <executions>
+
+                    <execution>
+
+                        <goals>
+
+                            <goal>prepare-agent</goal>
+
+                        </goals>
+
+                    </execution>
+
+                    <execution>
+
+                        <id>report</id>
+
+                        <phase>test</phase>
+
+                        <goals>
+
+                            <goal>report</goal>
+
+                        </goals>
+
+                    </execution>
+
+                </executions>
+
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+</project>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 private boolean isAllowedEndpoint(HttpServletRequest httpServletRequest) {
