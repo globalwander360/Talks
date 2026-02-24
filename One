@@ -1,0 +1,119 @@
+package com.bnpparibas.dpw.security.config;
+
+import com.bnpparibas.dpw.security.filter.SecurityRequestFilter;
+import com.bnpparibas.dpw.security.helper.UserHelper;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collections;
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+@ConditionalOnProperty(name = "wings.enabled.security", havingValue = "true")
+@Log4j2
+@RequiredArgsConstructor
+public class SecurityGlobalConfig {
+
+    private final UserDetailsService internalUserDetailservice;
+
+    @Value("#{'${security.allow.endpoints:}'.split(',')}")
+    private List<String> allowedEndpoints;
+
+    @Value("#{'${security.allow.resources:}'.split(',')}")
+    private List<String> allowedResources;
+
+    @PostConstruct
+    private void init() {
+        UserHelper.setIsSecurityEnabled(Boolean.TRUE);
+        log.info("Allowed Endpoints: {}", allowedEndpoints);
+        log.info("Allowed Resources: {}", allowedResources);
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .requestMatchers(allowedResources.toArray(new String[0]));
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(internalUserDetailservice);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
+            throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           SecurityRequestFilter securityRequestFilter) throws Exception {
+
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> {})
+            .headers(headers ->
+                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(allowedEndpoints.toArray(new String[0]))
+                .permitAll()
+                .anyRequest()
+                .authenticated()
+            )
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(securityRequestFilter, UsernamePasswordAuthenticationFilter.class)
+            .securityContext(securityContext ->
+                securityContext.requireExplicitSave(false)
+            );
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
