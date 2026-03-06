@@ -1,0 +1,176 @@
+<properties>
+    <java.version>21</java.version>
+    <spring-boot.version>3.5.9</spring-boot.version>
+
+    <project.packaging>war</project.packaging>
+
+    <lombok.version>1.18.42</lombok.version>
+
+    <ibm-mq.version>10.0.0</ibm-mq.version>
+    <activemq.version>6.1.2</activemq.version>
+
+    <pdfbox.version>2.0.33</pdfbox.version>
+    <handlebars-helpers.version>4.3.0</handlebars-helpers.version>
+
+    <reflections.version>0.10.2</reflections.version>
+    <jdom.version>2.0.6.1</jdom.version>
+
+    <cucumber.version>7.14.0</cucumber.version>
+
+    <mapstruct.version>1.6.0</mapstruct.version>
+
+    <greenmail.version>2.1.3</greenmail.version>
+    <mockwebserver.version>4.9.3</mockwebserver.version>
+
+    <xalan.version>2.7.3</xalan.version>
+
+</properties>
+
+
+<dependencies>
+
+    <dependency>
+        <groupId>com.github.jknack</groupId>
+        <artifactId>handlebars-helpers</artifactId>
+        <version>${handlebars-helpers.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-activemq</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-cache</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-broker</artifactId>
+        <version>${activemq.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>activemq-client</artifactId>
+        <version>${activemq.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.ibm.mq</groupId>
+        <artifactId>com.ibm.mq.jakarta.client</artifactId>
+        <version>${ibm-mq.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox</artifactId>
+        <version>${pdfbox.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox-tools</artifactId>
+        <version>${pdfbox.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>fontbox</artifactId>
+        <version>${pdfbox.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>${reflections.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom2</artifactId>
+        <version>${jdom.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${mapstruct.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct-processor</artifactId>
+        <version>${mapstruct.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>2.5.0</version>
+    </dependency>
+
+    <dependency>
+        <groupId>xalan</groupId>
+        <artifactId>xalan</artifactId>
+        <version>${xalan.version}</version>
+    </dependency>
+
+    <!-- TEST -->
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-spring</artifactId>
+        <version>${cucumber.version}</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.icegreen</groupId>
+        <artifactId>greenmail</artifactId>
+        <version>${greenmail.version}</version>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>mockwebserver</artifactId>
+        <version>${mockwebserver.version}</version>
+        <scope>test</scope>
+    </dependency>
+
+</dependencies>
