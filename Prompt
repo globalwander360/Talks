@@ -1,0 +1,31 @@
+Implement the following change for MX messages:
+
+Current Requirement:
+- For MX messages, the BNP code must be retrieved from the <RoutingCode> tag.
+- The existing MT logic must remain unchanged.
+- Branch identification should be derived using the BNP code extracted from the RoutingCode tag.
+
+Important Points:
+1. Apply this logic ONLY for MX messages.
+2. Do not rely on a fixed XML path or position of the RoutingCode tag.
+3. Search the XML document for the RoutingCode tag wherever it occurs.
+4. If multiple RoutingCode tags exist, use the business rule currently followed by the application (or document the selected approach).
+5. The RoutingCode tag may not always be present.
+6. If RoutingCode is missing:
+   - Do not throw an exception.
+   - Handle gracefully.
+   - Return null/empty value or apply existing fallback behavior.
+7. Add null checks and defensive validation.
+8. Maintain backward compatibility with MT message processing.
+
+Testing Requirements:
+- MX message with RoutingCode present.
+- MX message with RoutingCode absent.
+- MX message where RoutingCode appears in a different XML location.
+- MT message to verify no regression.
+- Invalid or malformed XML scenarios.
+
+Deliverables:
+- Production-ready code changes.
+- Unit tests covering all scenarios.
+- Clear comments explaining MX-specific RoutingCode extraction logic.
