@@ -1,0 +1,32 @@
+Analyze the existing implementation of the "Revised Request Date and Time" field and update the validation logic.
+
+Requirement:
+- "Request Reception Date and Time" is automatically populated by the system.
+- Users must be allowed to select any "Revised Request Date and Time" that is greater than or equal to the "Request Reception Date and Time".
+- Users must not be allowed to select a date/time earlier than the "Request Reception Date and Time".
+- The current date/time must NOT be used as the minimum allowed value.
+- Historical dates should be selectable if they are after the "Request Reception Date and Time".
+- Future dates should continue to be allowed.
+
+Acceptance Criteria:
+1. Minimum selectable date/time for "Revised Request Date and Time" = "Request Reception Date and Time".
+2. Any date/time before "Request Reception Date and Time" must be rejected.
+3. Any date/time equal to or after "Request Reception Date and Time" must be accepted.
+4. Remove all dependencies on the current system date/time for validation.
+5. Ensure both frontend and backend validations are aligned.
+6. Update or create automated tests covering valid and invalid scenarios.
+
+Example:
+Request Reception Date and Time = 28/02/2025 13:46
+
+Allowed:
+- 28/02/2025 13:46
+- 28/02/2025 13:47
+- 01/03/2025 10:00
+- Any future date/time
+
+Not Allowed:
+- 28/02/2025 13:45
+- 27/02/2025 23:59
+
+Please identify the affected code, implement the change, and provide a summary of the modifications.
