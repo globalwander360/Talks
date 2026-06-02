@@ -1,0 +1,15 @@
+Update the "Revised Request Date and Time" date picker behavior.
+
+The minimum selectable date/time should be the "Request Reception Date and Time".
+
+Example:
+
+- Request Reception Date and Time = 10-Feb-2025
+- Current Date = 25-Mar-2025
+
+Expected Behavior:
+
+- Dates before 10-Feb-2025 must not be selectable.
+- Clicking a date before 10-Feb-2025 should have no effect and the calendar should remain open.
+- Dates on or after 10-Feb-2025 should be selectable normally, including future dates.
+- No validation error message is required.
