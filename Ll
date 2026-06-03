@@ -1,0 +1,29 @@
+Bhai ye prompt developer ko dene ke liye use kar sakta hai:
+
+> Requirement:
+
+Currently, the Revised Request Date and Time field allows date selection based on the current date.
+
+We need to update this behavior so that the minimum selectable date/time for Revised Request Date and Time is the value selected in Request Reception Date and Time.
+
+Expected Behavior:
+
+When a user selects a value in Request Reception Date and Time, that value should be used as the minimum date/time for Revised Request Date and Time.
+
+The user should be able to select the same date or any future date/time in Revised Request Date and Time.
+
+The user should not be able to select any date/time earlier than the selected Request Reception Date and Time.
+
+This validation should be enforced at the calendar/date-picker level by disabling invalid dates/times.
+
+
+Example:
+
+Request Reception Date and Time = 01/05/2026 11:18
+
+Allowed: 01/05/2026 11:18 and later
+
+Not Allowed: Any date/time before 01/05/2026 11:18
+
+
+Please implement this using the date-picker's minDate/minDateTime functionality and update it dynamically whenever the Request Reception Date and Time value changes.
