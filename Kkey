@@ -1,0 +1,17 @@
+The previous implementation only works when the user manually changes the "Request Reception Date and Time" field.
+
+Issue:
+- On the Create screen, "Request Reception Date and Time" is pre-populated when the page loads.
+- If the user directly opens "Revised Request Date and Time", date selection is not available.
+- The functionality starts working only after the user manually re-selects or changes the Request Reception Date and Time value.
+
+Required Fix:
+- When the Create screen loads, if "Request Reception Date and Time" already contains a value, initialize the minimum date/time of "Revised Request Date and Time" using that existing value.
+- Do not rely only on the field change event.
+- The minDate/minDateTime should be set both:
+  1. On page/component initialization when a value already exists.
+  2. Whenever Request Reception Date and Time changes.
+
+Expected Behavior:
+- If Request Reception Date and Time is pre-populated, the user should be able to immediately open and select a valid Revised Request Date and Time without re-selecting the Request Reception Date and Time field.
+- Dates/times earlier than Request Reception Date and Time must remain disabled.
