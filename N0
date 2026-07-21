@@ -1,0 +1,96 @@
+Here's a clean, enterprise-friendly approach you can discuss with your team.
+
+Proposed Approach
+
+Instead of hardcoding the visibility of actions (Claim, Accounting Entries, etc.) in the frontend, the application should use a database-driven configuration.
+
+Database Table
+
+Create a configuration table that stores only disabled actions.
+
+Example:
+
+SECTOR	ACTION_NAME
+
+ONSHORE	CLAIM
+ONSHORE_DEDICATED	CLAIM
+ONSHORE_MADRID	CLAIM
+
+
+Logic
+
+The default behavior is:
+
+If no record exists, the action is enabled (visible).
+
+If a record exists, the action is disabled (hidden).
+
+
+This means the database only contains exceptions, making it easier to maintain.
+
+Backend Flow
+
+1. Frontend requests the available actions for an event.
+
+
+2. Backend identifies the event's sector (e.g., ONSHORE).
+
+
+3. Backend checks the configuration table for disabled actions for that sector.
+
+
+4. Backend returns the actions that should be hidden (or a flag indicating whether each action is enabled/disabled).
+
+
+5. Frontend renders the menu based on the backend response.
+
+
+
+Future Scenarios
+
+Current Requirement
+
+Disable Claim for:
+
+ONSHORE
+
+ONSHORE_DEDICATED
+
+ONSHORE_MADRID
+
+
+Just insert these records into the configuration table.
+
+Future Requirement 1
+
+Enable Claim again.
+
+→ Simply remove the corresponding records from the table. No code changes are required.
+
+Future Requirement 2
+
+Disable Accounting Entries for ONSHORE.
+
+→ Insert a new record:
+
+SECTOR	ACTION_NAME
+
+ONSHORE	ACCOUNTING_ENTRIES
+
+
+Again, no frontend or backend code changes are required.
+
+Benefits
+
+Database-driven configuration.
+
+No hardcoded sector checks in Angular.
+
+Future changes require only database updates.
+
+Easily extensible for additional actions.
+
+Follows a scalable enterprise configuration pattern.
+
+
+This is the approach I would recommend for a Spring Boot + Liquibase application because business behavior is controlled through configuration rather than code changes.
