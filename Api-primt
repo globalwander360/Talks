@@ -1,0 +1,24 @@
+Implement a new API specification in the c-api-specs project by following the existing DynamicScreen API specification.
+
+Reference:
+Use the existing DynamicScreen API as the reference for structure, naming conventions, request parameters, response schema, error responses, tags, operationId, and documentation.
+
+Requirements:
+
+1. Create a new GET API specification.
+2. The new API should accept two mandatory request parameters:
+   - screenId
+   - tabId
+3. Reuse the existing DynamicScreen response schema as much as possible.
+4. The response structure should remain identical to the existing DynamicScreen API. The only functional difference is that this API will return data for the requested screenId and tabId instead of all tabs.
+5. Reuse existing schema definitions wherever possible. Do not duplicate schemas unless absolutely necessary.
+6. Follow the project's existing OpenAPI conventions, formatting, indentation, naming standards, tags, operationId, responses, and reusable components.
+7. Add the new API path to the appropriate YAML file.
+8. If required, add any new request or response schemas under components while minimizing duplication.
+9. Do not modify the existing DynamicScreen API.
+10. Ensure the OpenAPI specification is valid and builds successfully.
+
+Deliverables:
+- Show all modified YAML files.
+- Explain any newly added schemas or references.
+- Reuse existing definitions wherever possible.
