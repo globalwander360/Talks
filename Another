@@ -1,0 +1,77 @@
+Implement the backend logic for the newly created API by following the existing getDynamicScreen() implementation as closely as possible. Reuse the same coding style, repositories, service methods, mapper pattern, logging, sector-based filtering, exception handling, and response mapping.
+
+Do NOT rewrite the DynamicScreen logic. Reuse and refactor wherever possible.
+
+Business Requirement:
+
+The frontend sends:
+- screenId
+- tabId
+- sector (same as DynamicScreen API if applicable)
+
+The response should be exactly the same as the existing DynamicScreen response, but only for the requested screenId and tabId.
+
+Implementation Steps:
+
+1. First retrieve the Group ID(s) from the DPW_SCREEN_TAB_MAPPING table.
+
+   Entity:
+   - TabMappingEntity
+
+   Filter by:
+   - screenMappingId = screenId
+   - tabId = request tabId
+
+   Extract the corresponding groupId(s).
+
+2. After obtaining the groupId(s), query DPW_DYNAMIC_SCREEN_TAB_DETAILS twice (same approach as DynamicScreen).
+
+   Entity:
+   - DynamicScreenTabFieldsEntity
+
+   First Query:
+   - screenId = request screenId
+   - tabId = request tabId
+   - groupId = request/extracted groupId
+
+   Second Query:
+   - use the groupId(s) obtained from DPW_SCREEN_TAB_MAPPING
+   - screenId = request screenId
+   - tabId = request tabId
+
+3. Merge/process the results exactly like getDynamicScreen() does.
+
+4. Reuse the existing helper/mapping logic used in DynamicScreen, especially the logic similar to:
+
+- grouping DynamicScreenTabDetailsModel by tab
+- replacing controls using DynamicScreenTabFieldsEntity
+- groupId handling
+- tab mapping
+- controlName matching
+- sector-based filtering
+- existing mapper methods
+
+The implementation should follow the same behaviour as the existing DynamicScreen API.
+
+Important:
+- Do not change the existing DynamicScreen API.
+- Do not duplicate existing business logic unnecessarily.
+- Extract common methods if required.
+- Reuse existing repository methods where possible.
+- Use existing entities:
+  - DynamicScreenTabFieldsEntity
+  - ScreenMappingEntity
+  - TabMappingEntity
+  - DynamicScreenTabEntity
+  - DynamicScreensEntity
+
+Maintain the same response structure as DynamicScreen.
+
+The only difference is that this API should return data only for the requested screenId and tabId instead of all tabs.
+
+Also verify how sector filtering is implemented inside getDynamicScreen() and apply the exact same behaviour in this API.
+
+Finally:
+- Show all modified files.
+- Explain which existing methods were reused.
+- Ensure the project builds successfully without affecting existing functionality.
