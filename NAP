@@ -1,0 +1,87 @@
+Implement a new backend GET API by following the existing project architecture and coding style.
+
+API Endpoint:
+GET /v1/getTabIdTabNameScreenIdScreenName
+
+Reference:
+Follow the implementation pattern of the existing getDynamicScreen() API. Reuse the same layers (Controller → Service → Repository) and project conventions.
+
+Requirement:
+
+There are two existing entities and tables:
+
+1. DPW_DYNAMIC_SCREENS
+   Entity: DynamicScreensEntity
+   Required fields:
+   - id
+   - screen
+
+2. DPW_DYNAMIC_SCREEN_TAB
+   Entity: DynamicScreenTabEntity
+   Required fields:
+   - id
+   - tab
+
+The API should fetch all records from both tables.
+
+For DPW_DYNAMIC_SCREENS return:
+- id as screenId
+- screen as screenName
+
+For DPW_DYNAMIC_SCREEN_TAB return:
+- id as tabId
+- tab as tabName
+
+Do NOT return any other fields from either entity.
+
+Implementation Requirements:
+
+- Follow existing service and repository patterns.
+- Create repositories only if they do not already exist.
+- Use JpaRepository.
+- Use DTO/model classes instead of returning entities.
+- Keep backward compatibility with the existing project.
+- Do not modify any existing APIs.
+- Do not change existing business logic.
+- Do not add Liquibase changesets or database changes.
+- Do not modify entity mappings.
+- Keep the implementation clean and consistent with existing coding standards.
+
+Response Structure:
+
+{
+  "screens": [
+    {
+      "screenId": "1",
+      "screenName": "Final Validation"
+    },
+    {
+      "screenId": "2",
+      "screenName": "Compliance"
+    }
+  ],
+  "tabs": [
+    {
+      "tabId": "1",
+      "tabName": "actionButtons"
+    },
+    {
+      "tabId": "3",
+      "tabName": "customerDetails"
+    }
+  ]
+}
+
+Implementation Steps:
+
+1. Add controller implementation for GET /v1/getTabIdTabNameScreenIdScreenName.
+2. Add service method.
+3. Fetch all DynamicScreensEntity records.
+4. Fetch all DynamicScreenTabEntity records.
+5. Map only the required fields into response DTOs.
+6. Return both lists in a single response object.
+7. Reuse existing mapper/util classes if available.
+8. Follow existing logging and exception handling patterns.
+9. Ensure the API builds successfully without affecting existing functionality.
+
+Finally, provide all modified files with complete code and mention which files were added or changed.
