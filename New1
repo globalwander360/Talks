@@ -1,0 +1,57 @@
+I need to implement a new API in a Spring Boot Java project.
+
+Requirements:
+
+1. The API receives:
+   - branch
+   - sector
+   - screenId
+   - countryCode
+   - defaultScreen
+   - screenMode
+   - eventType
+   - tabId
+
+2. First, query the DPW_SCREEN_MAPPING table using:
+   - BRANCH
+   - SECTOR
+   - SCREEN_ID
+   - COUNTRY_CODE
+   - DEFAULT_SCREEN
+   - SCREEN_MODE
+   - EVENT_TYPE
+
+3. From the matching record, retrieve the ID (primary key).
+
+4. Use this ID as SCREEN_MAPPING_ID to query the DPW_SCREEN_TAB_MAPPING table.
+
+5. From DPW_SCREEN_TAB_MAPPING, find the record matching:
+   - SCREEN_MAPPING_ID
+   - TAB_IDS contains/provided tabId
+
+6. Retrieve the GROUP_ID from that record.
+
+7. Query DynamicScreenTabFieldsEntity twice:
+   - First with:
+     screenId + tabId + groupId="*"
+   - Second with:
+     screenId + tabId + extracted GROUP_ID
+
+8. Merge both lists:
+   - Use the default (*) list as the base.
+   - If a control with the same controlName exists in the GROUP_ID list, replace the default control with the group-specific control.
+   - Otherwise keep the default control.
+
+9. Convert the merged entities into DynamicScreenTabDetailsModel.
+
+10. Set the tab name using DynamicScreenTabEntity.
+
+11. Group the response by tab name and return the final response.
+
+Please generate:
+- Entity relationships (if needed)
+- Repository methods
+- Service implementation
+- Efficient merge logic using Java Streams
+- Null handling
+- Clean, production-ready Spring Boot code following best practices.
