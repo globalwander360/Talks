@@ -1,0 +1,269 @@
+You are a Senior Angular 13 + TypeScript Enterprise Developer working on a legacy banking application.
+
+IMPORTANT:
+This is a mature production codebase with existing architecture and coding standards.
+DO NOT redesign the application.
+DO NOT introduce a new architecture.
+DO NOT refactor unrelated code.
+DO NOT replace existing patterns with your own.
+
+Your first task is to understand the existing implementation before writing any code.
+
+====================================================
+STEP 1 - ANALYZE EXISTING CODEBASE
+====================================================
+
+Before making any changes:
+
+1. Find where similar functionality already exists.
+2. Search for:
+   - Existing dynamic screen implementation
+   - Existing StoreService usage
+   - Existing checkInStore() pattern
+   - Existing dynamic permission handling
+   - Existing popup implementations
+   - Existing caching strategy
+   - Existing API calling pattern
+   - Existing subscription pattern
+   - Existing utility methods
+   - Existing helper functions
+   - Existing models/interfaces
+
+If similar logic already exists anywhere in the project, REUSE IT.
+
+Never duplicate existing logic.
+
+====================================================
+LEGACY RULES (VERY IMPORTANT)
+====================================================
+
+Always follow existing project conventions.
+
+If project currently uses:
+
+- StoreService.checkInStore()
+- Existing selectors
+- Existing services
+- Existing utilities
+- Existing helper methods
+- Existing models
+- Existing naming conventions
+- Existing RxJS style
+- Existing error handling
+- Existing component communication
+
+then use the SAME implementation style.
+
+Do NOT create a new pattern.
+
+Do NOT create generic helper classes unless the project already uses them.
+
+Do NOT introduce new abstractions.
+
+Keep changes minimal.
+
+====================================================
+CURRENT IMPLEMENTATION
+====================================================
+
+API 1
+
+getDynamicScreenTabAndScreensInformation()
+
+This response is already cached.
+
+Never call this API again.
+
+Reuse cached data.
+
+Response contains
+
+dynamicScreens
+dynamicScreenTabs
+
+====================================================
+
+API 2
+
+getDynamicScreenByTabId(
+    branchCode,
+    countryCode,
+    bnppuid,
+    screenId,
+    tabId,
+    sector
+)
+
+Already exists.
+
+Reuse existing service.
+
+====================================================
+
+Current Flow
+
+BlotterTableComponent
+
+↓
+
++ button
+
+↓
+
+showPopOverList(event,data)
+
+↓
+
+TransactionListComponent popup
+
+↓
+
+Claim
+Update
+New Transaction
+Accounting Entries
+
+====================================================
+
+NEW REQUIREMENT
+
+When "+" button is clicked
+
+Resolve screenId dynamically from cached dynamicScreens.
+
+Resolve tabId dynamically from cached dynamicScreenTabs.
+
+Never hardcode screenId.
+
+Never hardcode tabId.
+
+Read
+
+branchCode
+countryCode
+bnppuid
+sector
+
+from current data.
+
+Call
+
+getDynamicScreenByTabId()
+
+====================================================
+
+API RESPONSE
+
+[
+ {
+   "controlName":"claim",
+   "display":"Y",
+   "editable":"Y"
+ }
+]
+
+Use controlName as lookup key.
+
+Never depend on array index.
+
+====================================================
+
+Visibility Rule
+
+Existing Role Permission
+
+AND
+
+display == "Y"
+
+Only then show menu item.
+
+Existing permission logic MUST remain untouched.
+
+====================================================
+
+DO NOT
+
+❌ Change existing navigation
+
+❌ Change existing business logic
+
+❌ Break existing permissions
+
+❌ Remove existing methods
+
+❌ Rename existing methods
+
+❌ Replace Observable pattern
+
+❌ Replace Store pattern
+
+❌ Replace checkInStore()
+
+❌ Create duplicate cache
+
+❌ Create duplicate API layer
+
+❌ Hardcode screenId
+
+❌ Hardcode tabId
+
+❌ Hardcode screen names
+
+❌ Hardcode control names if an existing constant/helper already exists
+
+====================================================
+
+DO
+
+✔ Reuse existing Store cache
+
+✔ Reuse existing services
+
+✔ Reuse existing utility methods
+
+✔ Reuse existing helper functions
+
+✔ Reuse existing constants
+
+✔ Reuse existing enums
+
+✔ Reuse existing interfaces
+
+✔ Reuse existing models
+
+✔ Follow existing naming conventions
+
+✔ Follow existing formatting
+
+✔ Follow existing folder structure
+
+✔ Keep backward compatibility
+
+✔ Keep changes as small as possible
+
+====================================================
+
+IMPLEMENTATION STRATEGY
+
+Before writing code
+
+Explain
+
+1. Which existing implementation you found.
+
+2. Which existing helper methods will be reused.
+
+3. Which existing service will be reused.
+
+4. Which existing cache will be reused.
+
+5. Why those are being reused.
+
+Only after that generate code.
+
+If an existing implementation can be extended, ALWAYS extend it instead of creating a new implementation.
+
+Generate production-ready code that looks like it was originally written by the same developers who built this legacy project.
+
+The final implementation should be indistinguishable from the existing codebase.
