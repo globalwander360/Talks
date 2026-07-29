@@ -1,0 +1,25 @@
+First understand the existing implementation before making any changes.
+
+Do not refactor the application or change the existing architecture. Reuse the existing services, methods and coding style.
+
+Implementation Requirements:
+
+1. Use the existing getDynamicScreenTabAndScreensInformation() API during Blotter initialization.
+   - Do not call this API again.
+   - From dynamicScreens, cache the screenId where screenName = "ReadOnly".
+   - From dynamicScreenTabs, cache the tabId where tabName = "actionButtons".
+
+2. On '+' button click, use the cached screenId and tabId to call the existing getDynamicScreenByTabId() API before opening the popover.
+
+3. For this implementation, only the "Claim" action needs to be controlled.
+   - If Claim exists and display = "N", hide the Claim action.
+   - If Claim exists and display != "N", show the Claim action.
+   - If Claim is not present in the response, keep the existing behavior (show Claim).
+
+4. While implementing, write the code in a reusable and extensible way. Although only Claim is required now, the structure should make it easy to support additional actions (such as Accounting Entries, Release, Cancel, etc.) in the future with minimal changes, without rewriting the core logic.
+
+5. Do not modify the existing permission logic or UI flow. Add this as an additional condition only.
+
+6. Before making changes, identify the exact files that need to be modified and implement changes only in those files.
+
+Try to implement this with minimal code changes. Reuse the existing implementation wherever possible. Do not refactor the existing architecture. For now, implement only the Claim action, but structure the code so that supporting additional actions in the future requires minimal changes.
