@@ -1,0 +1,61 @@
+You are working on an existing Angular 13 enterprise application.
+
+IMPORTANT:
+- Do NOT refactor existing code.
+- Do NOT change the current architecture.
+- Do NOT modify existing permission logic.
+- Only implement the required functionality with minimal changes.
+
+Requirement:
+
+1. During component initialization, the existing API
+   getDynamicScreenTabAndScreensInformation(...)
+   is already called.
+
+2. Use the response of this existing API only.
+   Do NOT make another call to this API.
+
+3. From the response:
+   - Find the object in dynamicScreens where
+     screenName === "ReadOnly"
+     and store its screenId.
+
+   - Find the object in dynamicScreenTabs where
+     tabName === "actionButtons"
+     and store its tabId.
+
+   Cache both values in component variables for later use.
+
+4. When the user clicks the "+" button
+   (showPopOverList(event, data)),
+   before opening the popover,
+   call the existing API:
+
+   getDynamicScreenByTabId(
+       branchCode,
+       countryCode,
+       bnppuid,
+       readOnlyScreenId,
+       actionButtonTabId,
+       sector
+   )
+
+5. Inspect the response returned by getDynamicScreenByTabId.
+
+6. Search for the field named "Claim".
+
+Logic:
+- If Claim exists and display == "N"
+  => hide the Claim action.
+- If Claim exists and display != "N"
+  => show the Claim action.
+- If Claim does not exist in the response
+  => keep Claim visible (default behavior).
+
+7. Do NOT modify existing permission checks.
+   Add this as an additional condition only.
+
+8. Open the popover only after the API response has been processed so the Claim visibility is correct before rendering.
+
+9. Reuse existing services, observables and coding style.
+   Do not introduce any new architecture.
