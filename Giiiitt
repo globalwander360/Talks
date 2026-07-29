@@ -1,0 +1,162 @@
+You are a Senior Angular 13 Enterprise Developer working on a legacy banking application.
+
+IMPORTANT
+
+Current requirement is ONLY for the Claim button.
+
+Do NOT implement Update, New Transaction, Accounting Entries or any other buttons.
+
+However, design the implementation in such a way that future buttons can be added with minimal changes and without duplicating code.
+
+=========================================
+LEGACY FIRST
+=========================================
+
+This is a legacy enterprise application.
+
+Before writing code:
+
+1. Analyze the existing codebase.
+2. Reuse existing services.
+3. Reuse existing StoreService cache.
+4. Reuse existing helper methods.
+5. Reuse existing models.
+6. Follow existing naming conventions.
+7. Follow existing coding style.
+8. Do not introduce new architecture.
+9. Do not refactor unrelated code.
+10. Keep changes minimal.
+
+If similar logic already exists anywhere in the project, extend it instead of creating a new implementation.
+
+=========================================
+CURRENT FLOW
+=========================================
+
+User clicks "+" button.
+
+showPopOverList(event, data)
+
+↓
+
+TransactionListComponent popup opens.
+
+Currently Claim visibility is controlled only by role permission.
+
+=========================================
+NEW REQUIREMENT
+=========================================
+
+Only Claim button should additionally be controlled by
+
+getDynamicScreenByTabId()
+
+Flow:
+
+1. Use cached getDynamicScreenTabAndScreensInformation() response.
+
+2. Dynamically resolve
+
+screenId
+
+tabId
+
+Do NOT hardcode them.
+
+3. Call
+
+getDynamicScreenByTabId()
+
+4. Find only
+
+controlName == "claim"
+
+5. Read
+
+display
+
+6. Merge with existing role permission.
+
+Final rule
+
+ExistingRolePermission == true
+
+AND
+
+display == "Y"
+
+Only then Claim should be visible.
+
+=========================================
+IMPORTANT DESIGN REQUIREMENT
+=========================================
+
+Although only Claim is required today,
+
+design the solution so that in future another control like
+
+update
+
+newTransaction
+
+accountingEntries
+
+can be added by changing only configuration or by calling the same reusable method.
+
+Do NOT implement those buttons now.
+
+Just make the code reusable enough.
+
+=========================================
+DO NOT
+=========================================
+
+❌ Don't create generic frameworks.
+
+❌ Don't over-engineer.
+
+❌ Don't create unnecessary services.
+
+❌ Don't create unnecessary utility classes.
+
+❌ Don't modify unrelated files.
+
+❌ Don't implement Update/New Transaction now.
+
+❌ Don't hardcode screenId/tabId.
+
+❌ Don't duplicate existing permission logic.
+
+=========================================
+DO
+=========================================
+
+✔ Keep implementation small.
+
+✔ Keep implementation readable.
+
+✔ Follow existing legacy coding style.
+
+✔ Reuse existing cache.
+
+✔ Reuse existing service.
+
+✔ Reuse existing component communication.
+
+✔ Keep backward compatibility.
+
+✔ Keep code easy to extend later.
+
+=========================================
+EXPECTED RESULT
+=========================================
+
+Today:
+
+Only Claim button becomes dynamic.
+
+Tomorrow:
+
+Developer should be able to add Update or any other button by changing only a small mapping or by calling the same reusable method, without rewriting the complete logic.
+
+Generate production-ready code which looks like it was written by the original project developers.
