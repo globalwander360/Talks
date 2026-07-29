@@ -1,0 +1,254 @@
+You are a Senior Angular 13 + TypeScript Developer working on a large legacy enterprise banking application.
+
+IMPORTANT:
+Do NOT start coding immediately.
+
+First analyze the existing project and reuse the existing implementation wherever possible.
+
+=========================================================
+CURRENT REQUIREMENT
+=========================================================
+
+Implement ONLY the Claim button dynamic visibility inside TransactionListComponent popup.
+
+Do NOT implement Update, New Transaction or Accounting Entries.
+
+However, write the implementation in a reusable way so that future buttons can be added with minimal changes.
+
+=========================================================
+CURRENT FLOW
+=========================================================
+
+User clicks "+" button in BlotterTableComponent.
+
+↓
+
+showPopOverList(event, data)
+
+↓
+
+TransactionListComponent popup opens.
+
+Popup contains:
+
+- Claim
+- Update
+- New Transaction
+- Accounting Entries
+
+Currently Claim is shown based on existing role permissions.
+
+Now Claim should also be controlled using Dynamic Screen API response.
+
+=========================================================
+VERY IMPORTANT
+=========================================================
+
+DO NOT MODIFY THE EXISTING DYNAMIC SCREEN IMPLEMENTATION.
+
+Do NOT modify:
+
+- Existing Dynamic Screen APIs
+- Existing Dynamic Screen Services
+- Existing Dynamic Screen Components
+- Existing Dynamic Screen Cache
+- Existing Dynamic Screen Business Logic
+- Existing Dynamic Screen Flow
+
+Treat Dynamic Screen as an existing framework.
+
+Only consume its existing cache and existing service methods.
+
+=========================================================
+FIRST ANALYZE THE PROJECT
+=========================================================
+
+Before writing code search the project for:
+
+- Existing API calling pattern
+- Existing helper methods
+- Existing StoreService usage
+- Existing checkInStore() usage
+- Existing Dynamic Screen usage
+- Existing cache implementation
+- Existing popup implementation
+- Existing permission implementation
+- Existing Observable/RxJS pattern
+- Existing request mapping
+- Existing response parsing
+- Existing utility methods
+
+If an existing implementation already exists,
+
+REUSE IT.
+
+DO NOT duplicate it.
+
+=========================================================
+API REQUIREMENT
+=========================================================
+
+There are already two APIs.
+
+API 1
+
+getDynamicScreenTabAndScreensInformation()
+
+This response is already cached.
+
+DO NOT call this API again.
+
+Reuse the cached response.
+
+Resolve screenId and tabId dynamically from the cache.
+
+Never hardcode them.
+
+---------------------------------------------------------
+
+API 2
+
+getDynamicScreenByTabId(
+branchCode,
+countryCode,
+bnppuid,
+screenId,
+tabId,
+sector
+)
+
+This API already exists.
+
+Reuse the existing service method.
+
+Follow the same API calling pattern used everywhere else in the project.
+
+=========================================================
+CLAIM BUTTON LOGIC
+=========================================================
+
+Current role permission logic must remain exactly as it is.
+
+Do NOT replace it.
+
+Do NOT remove it.
+
+Only extend it.
+
+Call getDynamicScreenByTabId() using existing project flow.
+
+From API response find
+
+controlName == "claim"
+
+Read
+
+display
+
+Final visibility rule
+
+Existing Role Permission == true
+
+AND
+
+display == "Y"
+
+Only then Claim button should be visible.
+
+If display == "N"
+
+Hide only the Claim button.
+
+Nothing else should change.
+
+=========================================================
+FUTURE EXTENSIBILITY
+=========================================================
+
+Although only Claim is required today,
+
+write the code in a reusable way so that tomorrow Update or any other button can be added with very small changes.
+
+Do NOT implement those buttons now.
+
+Avoid duplicate code.
+
+Keep the implementation simple.
+
+=========================================================
+LEGACY REQUIREMENTS
+=========================================================
+
+Follow existing project coding style.
+
+Follow existing naming convention.
+
+Follow existing architecture.
+
+Reuse existing helper methods.
+
+Reuse existing services.
+
+Reuse existing cache.
+
+Reuse existing models.
+
+Reuse existing interfaces.
+
+Reuse existing constants.
+
+Reuse existing utility methods.
+
+Reuse existing subscription style.
+
+Reuse existing error handling.
+
+Do not introduce a new architecture.
+
+Do not introduce new generic helpers.
+
+Do not introduce new services if existing ones already solve the problem.
+
+Keep the changes minimal.
+
+The final implementation should look exactly like the rest of the legacy codebase.
+
+=========================================================
+DO NOT
+=========================================================
+
+❌ Do not modify existing Dynamic Screen implementation.
+
+❌ Do not change existing business logic.
+
+❌ Do not change popup behaviour.
+
+❌ Do not change existing permission logic.
+
+❌ Do not hardcode screenId.
+
+❌ Do not hardcode tabId.
+
+❌ Do not duplicate API logic.
+
+❌ Do not duplicate cache logic.
+
+❌ Do not refactor unrelated code.
+
+=========================================================
+OUTPUT
+=========================================================
+
+Before generating code,
+
+first explain:
+
+1. Which existing implementation you found.
+2. Which existing helper methods you will reuse.
+3. Which existing API pattern you will reuse.
+4. Which existing cache implementation you will reuse.
+5. Which existing methods will be extended instead of creating new ones.
+
+Only after completing the analysis generate the code.
+
+The generated code should pass enterprise code review and should look like it was written by the original developers of the project.
