@@ -1,0 +1,23 @@
++ Button
+    ↓
+showPopOverList(event, data)
+    ↓
+Resolve screenId from cached dynamicScreens
+Resolve tabId from cached dynamicScreenTabs
+    ↓
+Call getDynamicScreenByTabId(
+    branchCode,
+    countryCode,
+    bnppuid,
+    screenId,
+    tabId,
+    sector
+)
+    ↓
+Find the object where
+controlName === "claim"
+    ↓
+Show Claim only if
+display === "Y"
+AND
+existing permission logic is already true.
