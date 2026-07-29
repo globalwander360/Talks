@@ -1,0 +1,55 @@
+First understand the existing implementation before making any changes.
+
+IMPORTANT:
+- Follow the existing Angular architecture and coding style.
+- Make minimal code changes.
+- Do NOT refactor unrelated code.
+- Do NOT change the existing permission or navigation logic.
+- Reuse existing services and methods wherever possible.
+
+Requirement:
+
+I need to control the visibility of the "Claim" action displayed in the transaction popover.
+
+Implementation Flow (Please follow this exact sequence):
+
+1. During component initialization (ngOnInit), call the existing getDynamicScreenTabAndScreensInformation() API only once.
+
+2. Cache the COMPLETE response of the Information API in a component variable. This cached response will be reused later.
+   - Do NOT call the Information API again after initialization.
+   - Always use the cached response.
+
+3. When the user clicks the '+' button, the existing showPopOverList() (or equivalent) method will be invoked.
+
+4. Keep the '+' button method clean. From this method, call a separate helper method responsible for determining Claim visibility before opening the popover.
+
+5. Inside the helper method:
+   - Read the cached Information API response.
+   - From the cached response, find:
+     • screenId where screenName = "ReadOnly"
+     • tabId where tabName = "actionButtons"
+   - Do NOT call the Information API again.
+   - Once screenId and tabId are obtained from the cached response, call the existing getDynamicScreenByTabId() API using those values.
+
+6. getDynamicScreenByTabId() should NOT be cached.
+   - This API must be called every time the user clicks the '+' button.
+
+7. From the getDynamicScreenByTabId() response:
+   - Find the control where controlName = "Claim".
+   - If Claim exists and display = "N", hide the Claim action.
+   - If Claim exists and display != "N", show the Claim action.
+   - If the Claim control is not present in the response, keep the existing behaviour and show the Claim action.
+
+8. After the helper method finishes processing the API response, continue with the existing popover opening logic.
+
+9. The HTML already uses isActionVisible('claim').
+   - Do NOT change the HTML structure.
+   - Update only the underlying implementation so that isActionVisible('claim') returns the correct result based on the DynamicScreenByTabId response.
+
+10. For this implementation, support ONLY the Claim action.
+    However, write the helper method in a clean and maintainable way so that future actions (such as Accounting Entries, Update, Release, etc.) can be added with minimal changes without changing the overall flow.
+
+11. Before implementing:
+    - Identify the exact files that need to be modified.
+    - Explain why each file needs to be changed.
+    - Limit the implementation only to those files.
