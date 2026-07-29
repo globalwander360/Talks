@@ -1,0 +1,44 @@
+Understand the existing implementation first before making any changes.
+
+IMPORTANT:
+- Follow the existing Angular architecture and coding standards.
+- Make minimal code changes.
+- Do not refactor unrelated code.
+- Do not change existing permission, navigation, or UI behavior.
+- Reuse existing services and methods wherever possible.
+
+Requirement:
+
+I need to implement dynamic visibility for the "Claim" action displayed in the transaction popover.
+
+Expected Behavior:
+
+1. During component initialization, call the existing getDynamicScreenTabAndScreensInformation() API only once.
+
+2. Cache the complete response from the Information API in a component variable so it can be reused later. This API should not be called again after initialization.
+
+3. When the user clicks the '+' button, execute the existing flow. Before opening the popover, invoke a helper method responsible for evaluating the visibility of the Claim action.
+
+4. Inside the helper method:
+   - Read the cached Information API response.
+   - Retrieve the screenId for the screen whose screenName is "ReadOnly".
+   - Retrieve the tabId for the tab whose tabName is "actionButtons".
+   - Using these values, call the existing getDynamicScreenByTabId() API.
+   - This API should be called every time the '+' button is clicked. Do not cache this API.
+
+5. Process the response from getDynamicScreenByTabId():
+   - Search for the control named "Claim".
+   - If the Claim control exists and display = "N", the Claim action must not be displayed.
+   - If the Claim control exists and display != "N", the Claim action must be displayed.
+   - If the Claim control is not present in the response, preserve the existing behavior and display the Claim action.
+
+6. Once the visibility has been determined, continue with the existing popover opening flow.
+
+7. The HTML already uses the existing visibility mechanism (isActionVisible('claim')). Reuse the existing implementation wherever possible. Do not modify the HTML structure unless absolutely necessary.
+
+8. For this implementation, support only the Claim action. However, write the code in a clean and maintainable way so that supporting additional actions (such as Accounting Entries, Update, Release, etc.) in the future requires minimal changes.
+
+Before implementing:
+- Identify which files need to be modified.
+- Explain why each file requires changes.
+- Then implement the solution while limiting changes only to those files.
