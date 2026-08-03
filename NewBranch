@@ -1,0 +1,39 @@
+We need to maintain the existing functionality but change the implementation to make it dynamic.
+
+Currently, every transaction action (Claim, Update, New Transaction, Accounting Entries) is handled separately.
+
+Create a list called `transactionListDetails` where each object contains:
+
+- key
+- label
+- isPermission
+- displayCondition
+- onClick
+
+Reuse the existing code only.
+
+For permissions, use the existing variables:
+- isClaimPermission
+- isUpdatePermission
+- isNewTransactionPermission
+- isAccountingEntriesPermission
+
+For display conditions, reuse the existing methods:
+- isActionVisible(...)
+- hideUpdate()
+
+For click actions, reuse the existing methods:
+- showClaim()
+- showUpdate()
+- showNewTransaction()
+- showAccountingEntries()
+
+The HTML should render all actions using `*ngFor` instead of hardcoded items.
+
+Visibility should be:
+
+visible = isPermission && displayCondition()
+
+If either condition is false, the action should be hidden.
+
+Do not change any business logic, API calls, routing, or existing methods. Only refactor the implementation to make it configuration-driven while keeping the same behavior.
