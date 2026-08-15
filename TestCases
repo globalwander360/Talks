@@ -1,0 +1,162 @@
+Bilkul bhai. Ye final updated prompt hai. Isme target/, generated source, compiled code sab explicitly exclude kar diya hai. OpenSpec ko sirf existing production code ke liye JUnit test cases generate karne hain aur target 95%+ coverage hai.
+
+Improve the project's automated test coverage to achieve at least 95% JaCoCo/SonarQube code coverage.
+
+Main Objective
+
+Generate and add comprehensive JUnit test cases for the existing production source code so that previously uncovered executable lines, methods, branches, conditions, and code paths are properly executed and covered by tests.
+
+The primary goal is to reach 95%+ meaningful code coverage through JUnit test cases, not through exclusions, configuration changes, or manipulation of the coverage calculation.
+
+STRICT SCOPE
+
+Follow these rules strictly:
+
+- Do NOT generate new production source code.
+- Do NOT modify existing production source code or production logic.
+- Do NOT create or modify files under any "target/" directory.
+- Do NOT generate tests for compiled/generated source files.
+- Do NOT generate tests for build-output directories.
+- Do NOT generate tests for generated-source directories.
+- Do not treat files under "target/", "build/", or other build-output directories as production source code that needs testing.
+- Only use the actual source code under the project's "src/main" directories as the production code to be tested.
+- Only create or modify test code under the project's actual "src/test" directories.
+- If this is a multi-module/microservices project, apply these rules independently to each relevant module.
+- Analyze the existing production source code only to understand what needs to be tested.
+- Analyze the existing test suite only to understand current testing patterns and reuse them where appropriate.
+- All implementation changes must be limited to JUnit test code.
+
+Requirements
+
+1. Analyze the existing production source code under the appropriate "src/main" directories and the existing test suite under "src/test".
+
+2. Identify all relevant:
+   
+   - Uncovered lines
+   - Partially covered classes
+   - 0% coverage classes
+   - Uncovered methods
+   - Uncovered "if/else" branches
+   - Uncovered "switch" cases
+   - Uncovered exception paths
+   - Uncovered conditions ("&&", "||", ternary conditions, etc.)
+
+3. Generate JUnit test cases specifically to cover the uncovered lines and branches of the existing production code.
+
+4. Prioritize files/classes with the highest number of uncovered executable lines first so that coverage improves efficiently.
+
+5. Every newly generated test must execute actual existing production-code logic. Do not create meaningless tests only to increase the test count.
+
+6. Cover all applicable scenarios, including:
+   
+   - Happy-path/success scenarios
+   - Failure scenarios
+   - Exception scenarios
+   - Null values
+   - Empty values
+   - Boundary values
+   - Different conditional branches
+   - Different combinations of boolean conditions
+   - All relevant methods and code paths
+   - Configuration/business logic where executable
+
+7. Use the project's existing testing conventions and dependencies. Prefer the existing JUnit and Mockito setup instead of introducing unnecessary new testing frameworks or dependencies.
+
+8. Do not modify production logic merely to make it easier to test.
+
+9. Do NOT use exclusions to increase coverage.
+   
+   - Do not add classes/packages to JaCoCo exclusions.
+   - Do not add SonarQube exclusions.
+   - Do not remove production files from coverage.
+   - Do not modify coverage configuration just to artificially increase the percentage.
+   - Do not change what source files are included in coverage just to reach 95%.
+
+10. Do not remove, weaken, bypass, or disable existing tests.
+
+11. After generating the JUnit tests, run the complete applicable test suite and generate the JaCoCo coverage report.
+
+12. Compare the coverage before and after the changes:
+
+- Lines to Cover
+- Covered Lines
+- Uncovered Lines
+- Line Coverage %
+- Conditions to Cover
+- Covered Conditions
+- Uncovered Conditions
+- Condition/Branch Coverage %
+
+13. Focus heavily on "Uncovered Lines".
+
+For every test added, verify whether it actually executes previously uncovered production-code lines.
+
+14. If uncovered lines remain, inspect those exact lines in the existing production source and generate additional JUnit test cases specifically to execute them.
+
+15. Continue iteratively:
+
+Analyze → Identify Uncovered Lines → Generate JUnit Tests → Run Tests → Generate JaCoCo Report → Verify Coverage → Cover Remaining Lines → Repeat
+
+16. Do not stop after simply creating test classes. Verify that the newly generated tests actually increase JaCoCo/SonarQube coverage.
+
+17. If a test does not increase meaningful production-code coverage, investigate the reason instead of creating unnecessary duplicate tests.
+
+18. Continue until the project reaches 95% or higher coverage, where achievable through meaningful tests of the existing production code.
+
+Multi-Module / Microservices Requirement
+
+This is a multi-module/microservices project.
+
+Therefore:
+
+- Inspect each relevant Maven module separately.
+- Identify the actual "src/main" production source and "src/test" test source for each module.
+- Do not treat another module's "target/" output as source code.
+- Do not generate tests for JAR files, compiled ".class" files, generated sources, or build artifacts.
+- If a module has its own JaCoCo report, use that report to identify uncovered production lines.
+- Generate tests in the appropriate module's "src/test" directory.
+
+Final Validation
+
+Before finishing, verify that:
+
+- All practical uncovered production-code lines have been covered.
+- Relevant branches and conditions have been tested.
+- All generated JUnit tests pass.
+- All existing tests still pass.
+- JaCoCo report is generated successfully.
+- Coverage has actually increased as a result of the new tests.
+- No JaCoCo/SonarQube coverage exclusions were added.
+- No production source code was generated or modified.
+- No files under "target/" or other build-output directories were modified.
+- No tests were generated for compiled/generated source code.
+- The final coverage is 95%+, where achievable based on the existing production code.
+
+If coverage is still below 95%, continue identifying the remaining highest-impact uncovered production-code lines and add appropriate JUnit test cases rather than stopping early.
+
+Final Summary
+
+After completing the work, provide a summary containing:
+
+- Initial coverage %
+- Final coverage %
+- Initial uncovered lines
+- Final uncovered lines
+- Initial condition/branch coverage
+- Final condition/branch coverage
+- Number of JUnit test cases added
+- Classes/files for which tests were added
+- Remaining uncovered lines, if any
+- Remaining condition/branch coverage gaps, if any
+- Modules/services where tests were added
+- Confirmation that no coverage exclusions were added
+- Confirmation that production source code was not modified
+- Confirmation that no "target/", build-output, compiled, or generated source files were modified
+
+Important
+
+The objective is not to manipulate the coverage calculation.
+
+The objective is to write comprehensive JUnit test cases that actually execute and validate the existing uncovered production code, reduce "Uncovered Lines", cover relevant branches and conditions, and achieve 95%+ JaCoCo/SonarQube coverage.
+
+Only modify/create test code under the appropriate "src/test" directories. Do not modify production code, generated source code, compiled code, "target/", or build-output directories.
