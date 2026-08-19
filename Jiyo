@@ -1,0 +1,221 @@
+You are working on an existing legacy AngularJS + PrimeNG application.
+
+The Document Checklist functionality is already fully implemented. The existing modal, UI, document list/table, add/delete functionality, fields, Save button, X/close button, APIs, controllers/services, etc. are already present and working.
+
+I need you to implement ONLY the following 3 requirements in the existing Document Checklist functionality.
+
+VERY IMPORTANT – LEGACY CODEBASE
+
+Before making any changes, inspect the existing implementation and understand how Document Checklist currently works.
+
+Do NOT create a new Document Checklist.
+
+Do NOT redesign or rewrite the existing functionality.
+
+Do NOT migrate anything to modern Angular.
+
+Do NOT introduce new libraries/dependencies.
+
+Do NOT upgrade AngularJS or PrimeNG.
+
+Do NOT refactor unrelated code.
+
+Do NOT change existing APIs or backend logic unless absolutely required by one of these 3 requirements.
+
+Do NOT rename existing methods, variables, controllers, services, components, or files unless absolutely necessary.
+
+Reuse the existing AngularJS and PrimeNG patterns/components/services already present in the project.
+
+Make the smallest possible code changes required to implement these 3 requirements.
+
+---
+
+Requirement 1 – Improve Document Checklist Window/Layout
+
+The Document Checklist window currently has limited vertical space.
+
+When several documents are added, for example 6–7 documents, the available space gets consumed. When additional documents such as the 8th document are added, earlier documents are no longer visible without scrolling.
+
+Required change
+
+Improve the existing Document Checklist window/modal layout so that it uses the available screen/modal space more effectively.
+
+The goal is to allow more document rows to be visible at once and reduce unnecessary scrolling.
+
+Important
+
+- Keep the existing Document Checklist UI/design.
+- Do not redesign the table.
+- Do not change document functionality.
+- Do not change table columns or business logic.
+- Only adjust the existing modal/window dimensions/layout/scroll behavior where necessary.
+- Follow the existing CSS/PrimeNG styling patterns.
+- Make the minimum CSS/HTML/component changes required.
+
+---
+
+Requirement 2 – Warning When Document Checklist Has Unsaved Changes
+
+When the user makes changes to the Document Checklist and clicks the X/Close button without saving, the application must warn the user.
+
+Display:
+
+"Document Checklist is not saved. Continue ?"
+
+The confirmation must provide Yes / No behavior.
+
+Yes
+
+If the user clicks Yes:
+
+- Discard the unsaved changes.
+- Close the Document Checklist.
+- Follow the existing close behavior.
+
+No
+
+If the user clicks No:
+
+- Do not close the Document Checklist.
+- Keep the current Document Checklist open.
+- Preserve the user's current unsaved data.
+
+Unsaved changes should include changes such as:
+
+- Adding a document.
+- Removing/deleting a document.
+- Modifying Document Checklist values/fields.
+
+After a successful Save, the Document Checklist should be considered saved.
+
+If the existing project already has a dirty/change-detection mechanism, reuse it.
+
+If not, implement the smallest possible local mechanism for detecting unsaved changes.
+
+Important
+
+Do NOT implement auto-save.
+
+Do NOT modify the existing Save business logic unnecessarily.
+
+Only add the required dirty/unsaved-state handling and close confirmation.
+
+Also check whether the application already uses a PrimeNG confirmation/dialog component or an existing confirmation service. Reuse that instead of introducing a new dialog/library.
+
+---
+
+Requirement 3 – Warning When Document Checklist Is Empty
+
+There is a scenario where the Document Checklist can be empty for the applicable PGPE/utilization flow.
+
+When the user attempts to proceed/save/perform the relevant action while the Document Checklist is empty, display the required warning/validation message instead of silently proceeding.
+
+Important
+
+First inspect the existing code and screenshots/requirements to identify the exact existing flow and location where the empty Document Checklist validation should happen.
+
+Do not invent a new flow.
+
+Do not add validation to unrelated screens.
+
+Use the application's existing validation/warning/notification mechanism and existing PrimeNG component if available.
+
+If an existing message/constant/service is already used for similar validation, reuse it.
+
+---
+
+Implementation Instructions
+
+Before modifying code, inspect the existing Document Checklist implementation and identify:
+
+1. AngularJS controller/component/directive responsible for Document Checklist.
+2. Existing HTML/template.
+3. Existing PrimeNG modal/dialog implementation.
+4. Existing CSS/SCSS related to the Document Checklist window.
+5. Existing X/close handler.
+6. Existing Save handler.
+7. Existing add/delete/update document methods.
+8. Existing Document Checklist data/model.
+9. Existing confirmation/dialog/notification service.
+10. Existing validation mechanism.
+11. Existing tests related to Document Checklist.
+
+Then implement only the required changes.
+
+Strict Scope
+
+Changes must be limited to:
+
+- Document Checklist window/layout improvement.
+- Unsaved changes confirmation on close.
+- Empty Document Checklist warning/validation.
+
+Everything else must remain unchanged.
+
+Do not:
+
+- Refactor legacy code.
+- Clean up unrelated code.
+- Rename things unnecessarily.
+- Upgrade dependencies.
+- Change backend APIs.
+- Change unrelated UI.
+- Change existing business rules.
+- Replace existing PrimeNG components.
+- Introduce a new state-management solution.
+- Implement auto-save.
+
+---
+
+Testing
+
+Inspect the existing AngularJS/Jasmine/Karma test patterns and add only the necessary tests.
+
+At minimum verify:
+
+Requirement 1
+
+- Multiple documents can be displayed correctly.
+- Existing Document Checklist functionality remains unchanged.
+- Modal/window layout works correctly with a larger number of documents.
+
+Requirement 2
+
+- Open and close without changes → closes normally, no warning.
+- Add document → click X → warning appears.
+- Delete document → click X → warning appears.
+- Modify document/checklist value → click X → warning appears.
+- Click Yes → closes.
+- Click No → remains open with unsaved data.
+- Save successfully → click X → no warning.
+
+Requirement 3
+
+- Empty Document Checklist in the applicable PGPE/utilization flow → required warning is displayed.
+- User cannot incorrectly proceed when the required checklist is empty.
+- Existing valid/non-empty flow remains unchanged.
+
+Do not add unnecessary tests for unrelated legacy functionality.
+
+---
+
+Final Verification
+
+After implementation:
+
+1. Verify all 3 requirements.
+2. Verify existing Document Checklist functionality is not broken.
+3. Verify no unrelated files/code were changed unnecessarily.
+4. Run the relevant existing frontend tests.
+5. Fix only issues caused by these changes.
+
+Finally provide:
+
+- Files changed.
+- Short explanation of each change.
+- How the existing legacy behavior was preserved.
+- Tests added/updated.
+- Any assumptions made.
+- Any potential edge cases.
+
+Most important instruction: This is an existing production legacy AngularJS + PrimeNG application. Implement the 3 requested requirements with the smallest, safest, most localized changes possible. Do not over-engineer or refactor the existing code.
