@@ -1,0 +1,16 @@
+Update the existing Document Checklist to show a warning when the user tries to close it with unsaved changes.
+
+If the user makes any changes in the Document Checklist and clicks the X/Close button without saving, display:
+
+"Document Checklist is not saved. Continue ?"
+
+The user should get Yes and No options.
+
+- Yes → Close the Document Checklist and discard the unsaved changes.
+- No → Keep the Document Checklist open with the current changes.
+
+If there are no unsaved changes, the Document Checklist should close normally without showing the warning.
+
+After the user successfully saves the changes, closing the Document Checklist should also happen normally without showing the warning.
+
+Use the existing project implementation and confirmation mechanism with the minimum required change.
