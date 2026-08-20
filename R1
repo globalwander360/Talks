@@ -1,0 +1,14 @@
+Update the existing Document Checklist to improve the available space when adding documents.
+
+Currently, when more documents are added, the Save/Total footer gets pushed down and a scrollbar appears even though there is still usable space available.
+
+The expected behavior is:
+
+- Documents should continue to be added/displayed within the available space of the Document Checklist.
+- The existing Total + Save footer should remain visible at the bottom.
+- The Save button should not get pushed out of the visible area.
+- The existing footer design and styling should remain the same.
+- A scrollbar should appear only when the available space above the footer has been completely used.
+- Once scrolling is required, the user should still be able to access the existing Total + Save footer.
+
+Use the existing project implementation and styling to achieve this behavior with the minimum required change.
