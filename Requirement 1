@@ -1,0 +1,70 @@
+Haan bhai, Requirement 1 ke liye ye final prompt Roo Code ko de. Isme sirf expected behavior diya hai; implementation ka logic Roo Code existing code/SCSS/PrimeNG structure dekhkar decide karega.
+
+Requirement 1 – Document Checklist Display Area
+
+The existing Document Checklist functionality is already implemented in the application.
+
+The requirement is to improve the way the available space is used when adding multiple documents.
+
+Expected Behavior
+
+When the user clicks Add and continues adding documents:
+
+- The available space inside the existing Document Checklist window should be utilized properly.
+- The document adding/list area should continue using the available space until it reaches the existing footer area.
+- The existing Total + Save footer section must remain visible.
+- The Save button must not be pushed outside, hidden, or covered when additional documents are added.
+- The existing Total row must remain in the footer section exactly as it is currently displayed.
+- The existing footer styling and appearance should remain unchanged.
+- A scrollbar should not appear prematurely while there is still available space for displaying additional documents.
+- Once the document content reaches/exceeds the available area, scrolling should be allowed so the user can continue working with the documents.
+- Even after scrolling becomes necessary, the existing Total + Save footer must remain visible/accessibile.
+
+Important
+
+This is an existing legacy Angular + PrimeNG application using SCSS.
+
+The Document Checklist, modal/window, footer, Total row, Save button, document rows, and existing styling are already implemented.
+
+Do not create or redesign the Document Checklist.
+
+Before making changes, inspect the existing:
+
+- Angular component/controller implementation
+- HTML/template
+- SCSS
+- PrimeNG dialog/modal configuration
+- Existing Document Checklist layout and DOM structure
+
+Based on the existing implementation, determine the minimum required change to achieve the expected behavior above.
+
+Do not prescribe a new layout or architecture.
+
+Do not unnecessarily modify the existing HTML/SCSS/component logic.
+
+Do not change:
+
+- Existing footer design
+- Total row styling
+- Save button behavior
+- Document adding functionality
+- Document row design
+- Existing PrimeNG configuration unless required
+- Any unrelated functionality
+
+Do not refactor unrelated legacy code.
+
+Acceptance Criteria
+
+1. Existing Document Checklist opens and looks the same.
+2. User can continue adding documents while available space exists.
+3. Save button remains visible while documents are being added.
+4. Total row remains in the existing footer section.
+5. Footer does not get pushed outside the visible window.
+6. No scrollbar appears while sufficient space is still available.
+7. When the available document area is exhausted, scrolling becomes available.
+8. Footer remains visible/accessibile when scrolling is required.
+9. Existing CSS/SCSS styling remains visually unchanged.
+10. No unrelated functionality is affected.
+
+Important: Inspect the existing legacy implementation first and decide the appropriate Angular/SCSS/PrimeNG change yourself. Only make the minimum changes necessary to satisfy this requirement.
