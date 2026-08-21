@@ -1,0 +1,33 @@
+The previous flex-based change introduced a new issue: the Document Checklist Total/footer row is now getting clipped at the bottom even though there is still unused space below it.
+
+Please fix this without reverting the original requirement.
+
+Required behavior:
+
+- The document rows should use the available vertical space dynamically.
+- The vertical scrollbar should appear only when document rows exceed the available space.
+- The "Total" row and "Save" button must remain fully visible.
+- Do not let the table wrapper consume or clip the "tfoot"/Total row.
+- Do not use "height: 100%" on ".p-datatable-resizable" if it causes the table footer to be clipped.
+- Do not make the Total row part of the scrollable/clipped area incorrectly.
+- Preserve the existing PrimeNG p-table structure and existing HTML as much as possible.
+- Do not change TypeScript or business logic.
+- Do not introduce JavaScript/window height calculations.
+- Keep the solution responsive for both 14-inch laptops and larger monitors.
+
+Specifically review the previously added rules:
+
+- "display: flex"
+- "flex-direction: column"
+- "height: 100%"
+- "flex: 1 1 auto"
+- "overflow-y: auto"
+- sticky "tfoot"
+
+The goal is:
+
+Document rows should expand until the available vertical space is consumed → then the document area should scroll → while the Total/footer row remains completely visible below/at the bottom of the table.
+
+Do not blindly add another fixed "max-height: 350px". Determine the correct layout behavior from the existing side-panel/slider/accordion structure.
+
+Make the smallest possible SCSS change and keep the existing legacy styling/structure intact.
