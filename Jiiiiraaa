@@ -1,0 +1,30 @@
+Update the existing Document Checklist layout to fix the vertical scrolling behavior.
+
+Currently, the Document Checklist table wrapper has a fixed "max-height: 350px", which causes the vertical scrollbar to appear after adding around 7–8 documents even though there is still unused vertical space available below the table.
+
+Required behavior:
+
+- The Document Checklist table should use all available vertical space inside its existing parent slider/accordion area.
+- The table should continue expanding as documents are added while there is available vertical space.
+- The vertical scrollbar should appear only when the document rows actually exceed the available vertical space.
+- Do not use a fixed height or fixed "max-height" such as "350px".
+- The solution must be responsive and work correctly on both a 14-inch laptop and larger external monitors/resolutions.
+- Do not change the overall slider/modal design or unnecessarily modify the existing layout.
+- Keep the existing header, footer/Total row, Save button, Add button, and table behavior unchanged.
+- Prefer a CSS/SCSS-based solution using the existing parent layout/flex structure so the table wrapper consumes the available height dynamically.
+- Do not add JavaScript/TypeScript height calculations or window-size listeners.
+- Do not modify "addRow()", "deleteRow()", or any existing TypeScript business logic.
+- Do not introduce unnecessary HTML changes. Reuse the existing DOM structure wherever possible.
+- Follow the existing SCSS/legacy coding style and make the smallest necessary change.
+
+First inspect the existing "side-panel" / slider / accordion layout and "document-checklist.component.scss" to determine the correct available-height chain. Then implement the responsive flex/overflow solution at the appropriate level.
+
+Acceptance criteria:
+
+1. With a small number of documents, no unnecessary vertical scrollbar is displayed.
+2. Documents continue occupying the available vertical space as rows are added.
+3. The scrollbar appears only after the available vertical space is actually consumed.
+4. The behavior is responsive on both small laptop screens and larger monitors.
+5. The Total/footer and Save button remain visible and are not pushed outside the available Document Checklist area.
+6. No TypeScript/business-logic changes are introduced.
+7. Existing horizontal scrolling/resizable-column behavior remains unaffected.
