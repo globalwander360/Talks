@@ -1,0 +1,13 @@
+In the Document Checklist component, update the Document column so that the document text wraps naturally inside the existing document box instead of being truncated to a single line. Keep the existing hover tooltip unchanged.
+The side panel is resizable, so the implementation must be fully responsive to the panel width:
+When the side panel becomes wider, the Document box should use the available width and show more text per line.
+When the side panel becomes narrower, the text should automatically wrap into additional lines.
+The row/document box height should grow automatically based on the wrapped content.
+Do not use a fixed height for the document text box.
+Do not hardcode a fixed Document column width that breaks when the panel is resized.
+Long words/text should break safely without horizontal overflow.
+Keep the existing dropdown arrow and delete icon properly aligned and visible.
+Keep the hover tooltip for the full document text.
+Do not disturb the Original, Copy, Photocopy, or Scanned columns.
+Preserve the existing table layout and side-panel resize behavior.
+Expected behavior: The complete document text should be visible directly inside the Document box, wrapping to multiple lines according to the currently available panel/column width. Resizing the side panel should automatically reflow the text without overlap, clipping, horizontal overflow, or layout breaking.
