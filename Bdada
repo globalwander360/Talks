@@ -1,0 +1,7 @@
+Hi everyone,
+
+I have rolled back the script for IGS-5142 in both the DEV1 and QUAL1 environments.
+
+I have attached the script ZIP file that needs to be applied in the higher environments.
+
+Thanks.
