@@ -1,0 +1,7 @@
+Hi Nandan, I have a couple of doubts regarding the Sender BIC Code.
+
+First, will the Sender BIC Code received in the request be the same value that will be sent in the event?
+
+Second, I understand that the Sender BIC Code needs to be added under “Request Details” on the Create IS screen. Will this field be read-only, or will the user be able to modify the Sender BIC Code on the Create IS screen?
+
+I’m asking because if the Sender BIC Code is coming from the request, I want to confirm whether the user should be allowed to modify it before the event is generated.
