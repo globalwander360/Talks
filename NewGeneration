@@ -1,0 +1,10 @@
+I have an Angular ng-dpw-calendar with showTime="true" and [maxDate]="this.currentDate".
+Currently, maxDate restricts the date correctly, but it does not restrict the time on the current date. For example, if the current date/time is 02-Sep-2026 17:50, the user should not be able to select or enter 17:51 or any future time on the same date.
+Requirements:
+Keep the existing [maxDate]="this.currentDate" behavior.
+On the current date, disable/restrict all time values greater than the current time in the calendar.
+If the user manually types a future date/time (e.g. 02-Sep-2026 17:51 when the current time is 17:50), the revisedRequestDateTime FormControl must become invalid.
+No error message/UI is required; only the FormControl validity needs to be updated.
+Do not unnecessarily modify the existing component structure or create redundant methods.
+Ensure the validation works for both calendar selection and manual input.
+Please inspect the existing implementation and provide the minimal code changes required to achieve this behavior.
