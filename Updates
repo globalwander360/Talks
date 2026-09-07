@@ -1,0 +1,3 @@
+I’ll start with the technical task. I have done IGS-5738, IGS-5739, and IGS-5740, and the changes are now merged. The Docstore coverage is now 90%, MQL coverage is 70%, and Controller coverage is 77%. I have also removed these Jira tickets from the sprint.
+
+For the 9.0 Jira, I have IGS-4381. Development is completed, and Dev environment testing is pending.
