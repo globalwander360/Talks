@@ -1,0 +1,67 @@
+Requirement: Add an Attachments Column to the Request Queue
+
+Objective
+
+Implement an Attachments column in the existing Request Queue table. Display a document icon only for request rows that have one or more documents attached. When the user clicks the icon, navigate directly to the Document Management screen for the corresponding Request ID.
+
+Functional Requirements
+
+1. Add the Attachments Column
+   
+   - Add a new column named Attachments to the existing Request Queue table, following the UI design shown in the reference screenshot.
+   - Display a document icon (📄) in this column only when documents are available for the corresponding request.
+
+2. Display the Icon Based on Document Availability
+   
+   - Use the existing "scanDocRef" mechanism/reference described in the instruction sheet to determine the document count for each Request ID.
+   - If the document count is greater than "0", display the document icon.
+   - If the document count is "0", null, or no documents are available, do not display the icon.
+   - Reuse the existing document-count logic wherever possible. Do not introduce a duplicate mechanism for checking document availability.
+
+3. Navigate to Document Management
+   
+   - When the user clicks the document icon, navigate directly to the existing Document Management screen.
+   - Pass the corresponding Request ID so that the Document Management screen opens with the documents associated with that specific request.
+   - Ensure that the selected row's Request ID is used; do not open the screen with an incorrect or hardcoded ID.
+   - Reuse the existing navigation, routing, and document-management functionality wherever available.
+
+4. Apply the Correct Visibility Rules
+   
+   - The Attachments column and its icon should be available in the standard Request Queue and Tailored Queue, as applicable to the existing implementation.
+   - The icon must not be displayed in the Events Queue.
+   - The Attachments column must not appear in reports or exported details where columns are intended only for the interactive UI.
+   - Do not display a clickable icon when no documents are associated with the request.
+
+Implementation Constraints
+
+- First, inspect the existing codebase to identify the Request Queue component, table-column configuration, "scanDocRef" usage, document-count logic, and Document Management navigation.
+- Follow the existing legacy project architecture, coding conventions, component structure, and UI patterns (AngularJS/PrimeNG, where applicable).
+- Make the minimum code changes necessary. Avoid unnecessary refactoring, new components, additional dependencies, or changes to unrelated functionality.
+- Reuse existing services, APIs, methods, routing, and data structures wherever possible.
+- Do not assume that a new API or service is required. Verify the existing implementation first.
+- Handle missing document-count values safely and avoid displaying an icon until document availability is established.
+
+Acceptance Criteria
+
+- [ ] An Attachments column is added to the applicable Request Queue table.
+- [ ] The document icon is displayed only when "scanDocRef" indicates a document count greater than "0".
+- [ ] No icon is displayed when the document count is "0" or documents are unavailable.
+- [ ] Clicking the icon opens the Document Management screen for the corresponding Request ID.
+- [ ] The Events Queue does not display the icon or Attachments column.
+- [ ] Reports and exported details do not include the Attachments column.
+- [ ] Existing functionality remains unchanged.
+- [ ] The implementation follows the legacy code structure and introduces only minimal changes.
+
+Expected Approach
+
+Before making changes, trace the existing flow from the Request Queue data source to "scanDocRef" and then to the Document Management screen. Identify the smallest possible changes needed to implement the requirement.
+
+After implementation, summarize:
+
+1. Which files were modified.
+2. What changes were made in each file.
+3. How document availability is determined.
+4. How the Request ID is passed to Document Management.
+5. Why the implementation preserves the existing legacy architecture.
+
+Important: Inspect the actual code and existing instruction sheet before implementing. Do not invent field names, API calls, routes, or methods. Reuse the existing project implementation wherever possible.
