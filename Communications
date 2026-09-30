@@ -1,0 +1,18 @@
+Hi Everyone,
+
+I am currently working on IGS-5309. Implementing the exact scenario mentioned in the Jira ticket is challenging because the documents are fetched from **dpw-docstore**. Verifying the document availability of all requests simultaneously on the home screen would be complex and could also have a significant impact on application performance.
+
+To address this, I have identified an alternative solution, and I am attaching a screenshot to the Jira ticket for your review.
+
+In the proposed approach:
+- A **Document (eye) icon** will be displayed in the Attachments column.
+- When a user clicks the icon, the system will check whether documents are available for that specific request.
+- If documents are available, they will be displayed to the user. If no documents are available, no documents will be shown.
+- When the user clicks on an available document, they will be redirected to the Document Management screen, as required by the scenario.
+
+This approach will help improve performance by processing one request at a time instead of checking document availability for all requests simultaneously. It will also reduce service dependencies and minimize the chances of failures.
+
+I have attached the screenshot to the Jira ticket. Please review the proposed approach and share your feedback.
+
+Regards,
+Harish Prasad Semwal
