@@ -1,0 +1,24 @@
+Hi Everyone,
+
+Technical Concern: Event Age Range Search
+
+Currently, Event Age is calculated dynamically at runtime when we fetch events from the database based on pagination.
+
+The Event Age calculation depends on the organisation's yearly holiday dates, which are retrieved from an external API. These holidays are excluded while calculating the Event Age for each event.
+
+Now, we need to introduce a search functionality where users can enter a minimum and maximum Event Age and retrieve all events falling within the specified range.
+
+However, Event Age is not persisted in the database, and the current implementation calculates it dynamically for paginated events using holiday data from an external API.
+
+Implementing the Event Age range filter with the current approach may not be feasible from a performance perspective because:
+
+- We cannot directly apply the Event Age range filter at the database level, as Event Age is not stored in the database.
+- To identify all matching events, we would need to fetch and calculate the Event Age for a large number of records, potentially across multiple pages.
+- This would require additional database fetches and potentially multiple external Holiday API calls to retrieve the required yearly holiday dates during the search operation.
+- Processing a large number of events dynamically for every search request would significantly increase response time and introduce performance and scalability issues.
+- Applying the age range filter after pagination could also result in incomplete search results and incorrect pagination.
+
+Therefore, implementing Event Age range search using the current runtime calculation approach may introduce significant performance overhead and slowness.
+
+Regards,
+Harish Prasad Semwal
