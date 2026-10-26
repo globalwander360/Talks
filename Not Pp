@@ -1,0 +1,14 @@
+Hi Everyone,
+
+Technical Concern: Event Age Range Search
+
+Currently, Event Age is calculated dynamically at runtime for paginated events using BNP Paribas' yearly holiday dates, which are fetched from an external API. These holidays are excluded while calculating the Event Age, and the calculated age is not stored in the database.
+
+To implement the minimum and maximum Event Age search, we would need to calculate the age of a large number of events before applying the range filter.
+
+This could introduce significant performance issues, increase search response time, and require multiple database fetches and external API calls. Applying the filter after pagination could also lead to incomplete search results.
+
+Therefore, implementing this functionality with the current approach may not be feasible without impacting performance and scalability.
+
+Regards,
+Harish Prasad Semwal
