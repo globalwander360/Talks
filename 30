@@ -1,0 +1,21 @@
+private void setScanDocRef(EventListsPage eventListsPage) {
+
+    List<String> eventIds = eventListsPage.getResults()
+            .stream()
+            .map(RequestEvent::getId)
+            .collect(Collectors.toList());
+
+    Map<String, String> scanDocRefByEventId =
+            eventNonTxnDataRepository.findByEventIdIn(eventIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            NonTxnData::getEventId,
+                            NonTxnData::getScanDocRef,
+                            (existing, replacement) -> existing
+                    ));
+
+    eventListsPage.getResults().forEach(requestEvent ->
+            requestEvent.setScanDocRef(
+                    scanDocRefByEventId.get(requestEvent.getId())
+            ));
+}
